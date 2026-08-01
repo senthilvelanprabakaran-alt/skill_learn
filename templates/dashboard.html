@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SkillForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#030712;--surface:#0d1117;--surface2:#161b22;--surface3:#1f2937;
+    --border:rgba(99,210,255,0.12);--border2:rgba(99,210,255,0.25);
+    --cyan:#63d2ff;--cyan2:#00f5c8;--amber:#fbbf24;--pink:#f472b6;--purple:#a78bfa;
+    --text:#e2e8f0;--muted:#64748b;--success:#34d399;--danger:#f87171;
+    --font-head:'Exo 2',sans-serif;--font-mono:'Space Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-head);min-height:100vh;display:flex;}
+
+  /* SIDEBAR */
+  .sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;transition:.3s;}
+  .sidebar-logo{padding:1.8rem 1.5rem;border-bottom:1px solid var(--border);font-size:1.3rem;font-weight:900;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 20px rgba(99,210,255,.4);}
+  .sidebar-logo span{color:var(--cyan2);}
+  .sidebar-nav{flex:1;padding:1.5rem 0;overflow-y:auto;}
+  .nav-label{padding:.3rem 1.5rem;font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:.3rem;}
+  .nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.5rem;cursor:pointer;transition:.2s;color:var(--muted);font-weight:600;font-size:.9rem;text-decoration:none;border-left:3px solid transparent;}
+  .nav-item:hover,.nav-item.active{color:var(--cyan);background:rgba(99,210,255,.06);border-left-color:var(--cyan);}
+  .nav-item .icon{font-size:1.1rem;width:20px;text-align:center;}
+  .sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid var(--border);}
+  .user-chip{display:flex;align-items:center;gap:.75rem;}
+  .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#030712;flex-shrink:0;}
+  .user-info{flex:1;overflow:hidden;}
+  .user-name{font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-level{font-size:.7rem;color:var(--cyan2);font-family:var(--font-mono);}
+  .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:.2rem;}
+  .logout-btn:hover{color:var(--danger);}
+
+  /* MAIN */
+  .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+  /* TOPBAR */
+  .topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(13,17,23,.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:40;}
+  .topbar-title{font-size:1.2rem;font-weight:800;}
+  .topbar-right{display:flex;align-items:center;gap:1rem;}
+  .xp-badge{display:flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:.4rem .9rem;font-family:var(--font-mono);font-size:.78rem;color:var(--amber);}
+
+  /* CONTENT */
+  .content{padding:2rem;flex:1;}
+
+  /* STAT CARDS */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.3rem;position:relative;overflow:hidden;transition:.3s;}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--accent,var(--cyan));}
+  .stat-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+  .stat-icon{font-size:1.5rem;margin-bottom:.5rem;}
+  .stat-value{font-size:1.8rem;font-weight:900;font-family:var(--font-mono);color:var(--accent,var(--cyan));}
+  .stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem;}
+
+  /* SECTION HEADER */
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+  .section-head h2{font-size:1.1rem;font-weight:800;letter-spacing:.5px;}
+  .section-head h2 span{color:var(--cyan);}
+  .see-all{font-size:.8rem;color:var(--cyan);cursor:pointer;font-family:var(--font-mono);background:none;border:none;text-decoration:underline;}
+
+  /* SKILL GRID */
+  .skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:2.5rem;}
+  .skill-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+  .skill-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--card-color,rgba(99,210,255,.08)),transparent);opacity:0;transition:.3s;}
+  .skill-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+  .skill-card:hover::before{opacity:1;}
+  .skill-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+  .skill-icon{font-size:1.8rem;}
+  .skill-cat{font-size:.65rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:1px;text-transform:uppercase;}
+  .skill-name{font-weight:800;font-size:1rem;margin-bottom:.4rem;}
+  .skill-desc{font-size:.77rem;color:var(--muted);line-height:1.5;margin-bottom:1rem;}
+  .progress-bar{height:4px;background:var(--surface3);border-radius:100px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--cyan2));border-radius:100px;transition:width .8s ease;}
+  .skill-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.8rem;font-size:.75rem;}
+  .skill-xp{color:var(--amber);font-family:var(--font-mono);}
+  .skill-progress-text{color:var(--muted);}
+  .skill-start-btn{display:none;position:absolute;bottom:1rem;right:1rem;background:var(--cyan);color:#030712;border:none;border-radius:6px;padding:.4rem .8rem;font-weight:700;font-size:.75rem;cursor:pointer;}
+  .skill-card:hover .skill-start-btn{display:block;}
+
+  /* CUSTOM SKILL INPUT */
+  .custom-skill-box{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:1.5rem;margin-bottom:2.5rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;}
+  .custom-skill-box input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;color:var(--text);font-family:var(--font-head);font-size:.95rem;outline:none;}
+  .custom-skill-box input:focus{border-color:var(--cyan);}
+  .custom-skill-box p{font-size:.85rem;color:var(--muted);width:100%;}
+
+  /* RECENT ACTIVITY */
+  .activity-list{display:flex;flex-direction:column;gap:.6rem;}
+  .activity-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;display:flex;align-items:center;gap:1rem;}
+  .activity-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0;box-shadow:0 0 8px var(--cyan);}
+  .activity-text{flex:1;font-size:.87rem;}
+  .activity-text strong{color:var(--cyan2);}
+  .activity-time{font-size:.75rem;color:var(--muted);font-family:var(--font-mono);}
+  .activity-msgs{font-size:.75rem;color:var(--muted);font-family:var(--font-mono);}
+
+  /* CATEGORY FILTER */
+  .cat-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+  .cat-btn{padding:.4rem 1rem;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-size:.8rem;cursor:pointer;transition:.2s;}
+  .cat-btn:hover,.cat-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(99,210,255,.08);}
+
+  /* LOADING */
+  .loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--muted);}
+  .spin{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:1rem;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:.9rem 1.4rem;font-size:.88rem;z-index:999;transform:translateY(100px);opacity:0;transition:.3s;max-width:320px;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-color:var(--success);color:var(--success);}
+  .toast.error{border-color:var(--danger);color:var(--danger);}
+
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);}
+    .main{margin-left:0;}
+    .content{padding:1rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">SKILL<span>FORGE</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <a class="nav-item active" href="/dashboard"><span class="icon">⚡</span>Dashboard</a>
+    <a class="nav-item" href="/profile"><span class="icon">👤</span>My Profile</a>
+    <a class="nav-item" href="/challenges"><span class="icon">🏆</span>Challenges</a>
+    <a class="nav-item" href="/performance"><span class="icon">📈</span>Performance</a>
+    <div class="nav-label" style="margin-top:1rem;">Skills</div>
+    <div id="enrolled-nav"></div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar" id="sidebar-avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-name">Loading...</div>
+        <div class="user-level" id="sidebar-level">Level 1</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">⏻</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Dashboard <span style="color:var(--muted);font-weight:400;font-size:.9rem;">— Welcome back!</span></div>
+    <div class="topbar-right">
+      <div class="xp-badge">⚡ <span id="total-xp">0</span> XP</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats-row" id="stats-row">
+      <div class="stat-card" style="--accent:var(--cyan)"><div class="stat-icon">📚</div><div class="stat-value" id="stat-skills">0</div><div class="stat-label">Skills Enrolled</div></div>
+      <div class="stat-card" style="--accent:var(--amber)"><div class="stat-icon">⚡</div><div class="stat-value" id="stat-xp">0</div><div class="stat-label">Total XP</div></div>
+      <div class="stat-card" style="--accent:var(--cyan2)"><div class="stat-icon">💬</div><div class="stat-value" id="stat-sessions">0</div><div class="stat-label">Study Sessions</div></div>
+      <div class="stat-card" style="--accent:var(--purple)"><div class="stat-icon">🏅</div><div class="stat-value" id="stat-level">1</div><div class="stat-label">Current Level</div></div>
+    </div>
+
+
+    <!-- CHALLENGES BANNER -->
+    <div onclick="window.location.href='/challenges'" style="background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(251,191,36,.08));border:1px solid rgba(167,139,250,.3);border-radius:14px;padding:1.2rem 1.6rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:.2s;gap:1rem;" onmouseover="this.style.borderColor='rgba(167,139,250,.6)'" onmouseout="this.style.borderColor='rgba(167,139,250,.3)'">
+      <div>
+        <div style="font-size:1rem;font-weight:800;margin-bottom:.25rem;">🏆 Daily Challenges</div>
+        <div style="font-size:.82rem;color:var(--muted);">Test your skills with timed quizzes · Earn XP · Unlock badges</div>
+      </div>
+      <div style="background:linear-gradient(135deg,var(--purple),var(--amber));color:#030712;padding:.5rem 1.1rem;border-radius:8px;font-weight:800;font-size:.82rem;white-space:nowrap;">Go →</div>
+    </div>
+    <!-- CUSTOM SKILL -->
+    <div class="custom-skill-box">
+      <p>🎯 <strong>Learn anything!</strong> Type any skill you want to learn and we'll create a personalized AI curriculum for you.</p>
+      <input type="text" id="custom-skill-input" placeholder="e.g. Machine Learning, Korean, Chess, Drawing...">
+      <button class="btn-primary" style="padding:.7rem 1.4rem;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#030712;font-weight:700;font-size:.9rem;border:none;cursor:pointer;white-space:nowrap;" onclick="enrollCustomSkill()">+ Add Skill</button>
+    </div>
+
+    <!-- ALL SKILLS -->
+    <div class="section-head">
+      <h2>Available <span>Skills</span></h2>
+    </div>
+    <div class="cat-filters" id="cat-filters">
+      <button class="cat-btn active" onclick="filterSkills('All',this)">All</button>
+      <button class="cat-btn" onclick="filterSkills('Coding',this)">💻 Coding</button>
+      <button class="cat-btn" onclick="filterSkills('Language',this)">🌍 Language</button>
+      <button class="cat-btn" onclick="filterSkills('Aptitude',this)">🧮 Aptitude</button>
+      <button class="cat-btn" onclick="filterSkills('Soft Skills',this)">🎯 Soft Skills</button>
+    </div>
+    <div class="skill-grid" id="skill-grid">
+      <div class="loading"><div class="spin"></div>Loading skills...</div>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="section-head">
+      <h2>Recent <span>Activity</span></h2>
+    </div>
+    <div class="activity-list" id="activity-list">
+      <div class="loading"><div class="spin"></div>Loading activity...</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOKEN = localStorage.getItem('sf_token');
+const NAME = localStorage.getItem('sf_name') || 'User';
+if (!TOKEN) window.location.href = '/';
+
+let allSkills = [];
+let userSkillNames = new Set();
+
+// Init
+document.getElementById('sidebar-avatar').textContent = NAME[0].toUpperCase();
+document.getElementById('sidebar-name').textContent = NAME;
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  });
+  if (res.status === 401) { logout(); return null; }
+  return res.json();
+}
+
+async function loadDashboard() {
+  const [profileData, skillsData] = await Promise.all([
+    apiFetch('/api/profile'),
+    apiFetch('/api/skills')
+  ]);
+
+  if (profileData) {
+    const s = profileData.stats;
+    document.getElementById('stat-skills').textContent = s.skills_count;
+    document.getElementById('stat-xp').textContent = s.total_xp;
+    document.getElementById('stat-sessions').textContent = s.sessions;
+    document.getElementById('stat-level').textContent = s.level;
+    document.getElementById('total-xp').textContent = s.total_xp;
+    document.getElementById('sidebar-level').textContent = `Level ${s.level}`;
+
+    // User skills mapping
+    profileData.skills.forEach(sk => userSkillNames.add(sk.name));
+
+    // Sidebar enrolled skills
+    const navEl = document.getElementById('enrolled-nav');
+    navEl.innerHTML = profileData.skills.slice(0,6).map(sk =>
+      `<a class="nav-item" href="/learn/${encodeURIComponent(sk.name)}"><span class="icon">${getIcon(sk.name)}</span>${sk.name}</a>`
+    ).join('');
+
+    // Recent activity
+    const actEl = document.getElementById('activity-list');
+    if (profileData.recent_activity.length === 0) {
+      actEl.innerHTML = `<div style="color:var(--muted);font-size:.9rem;padding:1rem;">No activity yet — start learning! 🚀</div>`;
+    } else {
+      actEl.innerHTML = profileData.recent_activity.map(a =>
+        `<div class="activity-item">
+          <div class="activity-dot"></div>
+          <div class="activity-text">Studied <strong>${a.skill_name}</strong></div>
+          <div class="activity-msgs">${a.messages} msgs</div>
+          <div class="activity-time">${timeAgo(a.created_at)}</div>
+        </div>`
+      ).join('');
+    }
+  }
+
+  if (skillsData) {
+    allSkills = skillsData.skills;
+    renderSkills(allSkills);
+  }
+}
+
+function renderSkills(skills) {
+  const grid = document.getElementById('skill-grid');
+  if (!skills.length) { grid.innerHTML = `<div style="color:var(--muted)">No skills found.</div>`; return; }
+
+  const catColors = {
+    'Coding': 'rgba(99,210,255,.08)',
+    'Language': 'rgba(167,139,250,.08)',
+    'Aptitude': 'rgba(251,191,36,.08)',
+    'Soft Skills': 'rgba(244,114,182,.08)',
+    'Custom': 'rgba(0,245,200,.08)'
+  };
+
+  grid.innerHTML = skills.map(sk => {
+    const enrolled = userSkillNames.has(sk.name);
+    const userSkill = enrolled ? null : null;
+    return `
+    <div class="skill-card" style="--card-color:${catColors[sk.category] || catColors.Custom}" onclick="goLearn('${sk.name}')">
+      <div class="skill-top">
+        <div class="skill-icon">${sk.icon || '📚'}</div>
+        <div class="skill-cat">${sk.category}</div>
+      </div>
+      <div class="skill-name">${sk.name}</div>
+      <div class="skill-desc">${(sk.description || '').substring(0, 70)}...</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+      <div class="skill-footer">
+        <div class="skill-xp">⚡ 0 XP</div>
+        <div class="skill-progress-text">${enrolled ? 'Enrolled ✓' : sk.difficulty || 'Beginner'}</div>
+      </div>
+      <button class="skill-start-btn">${enrolled ? 'Continue →' : 'Start →'}</button>
+    </div>`;
+  }).join('');
+}
+
+function filterSkills(cat, btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = cat === 'All' ? allSkills : allSkills.filter(s => s.category === cat);
+  renderSkills(filtered);
+}
+
+async function goLearn(skillName) {
+  // Enroll if not already
+  if (!userSkillNames.has(skillName)) {
+    await apiFetch('/api/skills/enroll', { method: 'POST', body: JSON.stringify({ skill_name: skillName }) });
+    userSkillNames.add(skillName);
+    showToast(`Enrolled in ${skillName}! 🎉`, 'success');
+  }
+  window.location.href = `/learn/${encodeURIComponent(skillName)}`;
+}
+
+async function enrollCustomSkill() {
+  const input = document.getElementById('custom-skill-input');
+  const name = input.value.trim();
+  if (!name) return;
+  const res = await apiFetch('/api/skills/enroll', { method: 'POST', body: JSON.stringify({ skill_name: name }) });
+  if (res && res.success) {
+    input.value = '';
+    showToast(`"${name}" added! Click to start learning. 🎯`, 'success');
+    userSkillNames.add(name);
+    // reload
+    await loadDashboard();
+  }
+}
+
+function getIcon(name) {
+  const icons = { 'Python': '🐍', 'JavaScript': '⚡', 'SQL': '🗄️', 'English': '🇬🇧', 'Spanish': '🇪🇸', 'French': '🇫🇷', 'Japanese': '🇯🇵', 'Aptitude': '🧮', 'Public Speaking': '🎤', 'Leadership': '👑', 'Time Management': '⏰', 'Critical Thinking': '🧠', 'Data Structures': '🌲', 'Verbal Reasoning': '📖' };
+  return icons[name] || '📚';
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = '/';
+}
+
+// Enter key for custom skill
+document.getElementById('custom-skill-input').addEventListener('keydown', e => { if (e.key === 'Enter') enrollCustomSkill(); });
+
+loadDashboard();
+</script>
+</body>
+</html>

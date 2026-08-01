@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillForge — Learn Anything with AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #030712;
+    --surface: #0d1117;
+    --surface2: #161b22;
+    --border: rgba(99,210,255,0.15);
+    --cyan: #63d2ff;
+    --cyan2: #00f5c8;
+    --amber: #fbbf24;
+    --pink: #f472b6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --font-head: 'Exo 2', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font-head);}
+
+  /* CANVAS BG */
+  #bg-canvas{position:fixed;inset:0;z-index:0;opacity:0.4;}
+
+  .page{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* NAV */
+  nav{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 3rem;border-bottom:1px solid var(--border);}
+  .logo{font-size:1.6rem;font-weight:900;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 20px rgba(99,210,255,0.5);}
+  .logo span{color:var(--cyan2);}
+  .nav-btns{display:flex;gap:1rem;}
+  .btn{padding:.6rem 1.5rem;border-radius:6px;font-family:var(--font-head);font-weight:600;font-size:.9rem;cursor:pointer;transition:all .2s;border:none;text-decoration:none;display:inline-block;}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 15px rgba(99,210,255,0.2);}
+  .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#030712;font-weight:700;}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 25px rgba(99,210,255,0.4);}
+
+  /* HERO */
+  .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4rem 2rem;gap:2rem;}
+  .hero-tag{font-family:var(--font-mono);font-size:.75rem;color:var(--cyan2);letter-spacing:4px;text-transform:uppercase;padding:.4rem 1rem;border:1px solid rgba(0,245,200,.3);border-radius:100px;width:fit-content;}
+  .hero h1{font-size:clamp(2.5rem,7vw,5.5rem);font-weight:900;line-height:1.05;letter-spacing:-1px;}
+  .hero h1 .grd{background:linear-gradient(135deg,var(--cyan),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .hero p{font-size:1.15rem;color:var(--muted);max-width:600px;line-height:1.7;}
+  .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-xl{padding:.9rem 2.5rem;font-size:1.05rem;border-radius:8px;}
+
+  /* SKILLS TICKER */
+  .ticker{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:.8rem 0;background:rgba(13,17,23,.8);}
+  .ticker-inner{display:flex;gap:2rem;width:max-content;animation:ticker 25s linear infinite;}
+  .ticker-item{display:flex;align-items:center;gap:.5rem;font-family:var(--font-mono);font-size:.8rem;color:var(--muted);white-space:nowrap;}
+  .ticker-item span{color:var(--cyan);font-size:1.1rem;}
+  @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* FEATURES */
+  .features{padding:5rem 3rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;max-width:1200px;margin:0 auto;width:100%;}
+  .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;transition:all .3s;position:relative;overflow:hidden;}
+  .feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,210,255,.05),transparent);opacity:0;transition:.3s;}
+  .feat-card:hover{border-color:var(--cyan);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.4);}
+  .feat-card:hover::before{opacity:1;}
+  .feat-icon{font-size:2rem;margin-bottom:1rem;}
+  .feat-card h3{font-size:1.1rem;font-weight:700;margin-bottom:.5rem;color:var(--cyan);}
+  .feat-card p{font-size:.9rem;color:var(--muted);line-height:1.6;}
+
+  /* AUTH MODAL */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(3,7,18,.85);z-index:100;backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:90%;max-width:420px;position:relative;}
+  .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;}
+  .modal h2{font-size:1.6rem;font-weight:800;margin-bottom:.3rem;}
+  .modal p{color:var(--muted);font-size:.9rem;margin-bottom:1.8rem;}
+  .tabs{display:flex;gap:0;margin-bottom:1.8rem;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+  .tab{flex:1;padding:.65rem;text-align:center;cursor:pointer;font-family:var(--font-head);font-weight:600;font-size:.9rem;background:transparent;border:none;color:var(--muted);transition:.2s;}
+  .tab.active{background:var(--cyan);color:#030712;}
+  .form-group{margin-bottom:1.2rem;}
+  .form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:.4rem;letter-spacing:.5px;text-transform:uppercase;}
+  .form-group input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-family:var(--font-head);font-size:.95rem;outline:none;transition:.2s;}
+  .form-group input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(99,210,255,.1);}
+  .btn-submit{width:100%;padding:.85rem;margin-top:.5rem;font-size:1rem;border-radius:8px;}
+  .err-msg{color:#f87171;font-size:.85rem;margin-top:.5rem;display:none;}
+  .err-msg.show{display:block;}
+  .success-msg{color:var(--cyan2);font-size:.85rem;margin-top:.5rem;display:none;}
+  .success-msg.show{display:block;}
+
+  @media(max-width:768px){
+    nav{padding:1rem 1.5rem;}
+    .features{padding:3rem 1.5rem;}
+    .hero h1{font-size:2.8rem;}
+  }
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+  <nav>
+    <div class="logo">SKILL<span>FORGE</span></div>
+    <div class="nav-btns">
+      <button class="btn btn-ghost" onclick="openAuth('login')">Login</button>
+      <button class="btn btn-primary" onclick="openAuth('register')">Get Started</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-tag"> AI-Powered Learning Platform</div>
+    <h1>Master Any Skill<br>With Your <span class="grd">AI Teacher</span></h1>
+    <p>Learn coding, languages, aptitude or soft skills with a personalized AI mentor. Track progress, earn XP, and achieve your goals faster.</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary btn-xl" onclick="openAuth('register')">Start Learning Free →</button>
+      <button class="btn btn-ghost btn-xl" onclick="openAuth('login')">Continue Journey</button>
+    </div>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-inner" id="ticker">
+      <div class="ticker-item"><span></span> Python</div>
+      <div class="ticker-item"><span></span> JavaScript</div>
+      <div class="ticker-item"><span></span> English</div>
+      <div class="ticker-item"><span></span> Aptitude</div>
+      <div class="ticker-item"><span></span> Public Speaking</div>
+      <div class="ticker-item"><span>🇪🇸</span> Spanish</div>
+      <div class="ticker-item"><span></span> Data Structures</div>
+      <div class="ticker-item"><span></span> Leadership</div>
+      <div class="ticker-item"><span>🇯🇵</span> Japanese</div>
+      <div class="ticker-item"><span></span> Critical Thinking</div>
+      <div class="ticker-item"><span></span> SQL</div>
+      <div class="ticker-item"><span></span> Time Management</div>
+      <!-- duplicate for seamless loop -->
+      <div class="ticker-item"><span></span> Python</div>
+      <div class="ticker-item"><span></span> JavaScript</div>
+      <div class="ticker-item"><span>🇬🇧</span> English</div>
+      <div class="ticker-item"><span></span> Aptitude</div>
+      <div class="ticker-item"><span></span> Public Speaking</div>
+      <div class="ticker-item"><span>🇪🇸</span> Spanish</div>
+      <div class="ticker-item"><span></span> Data Structures</div>
+      <div class="ticker-item"><span></span> Leadership</div>
+      <div class="ticker-item"><span>🇯🇵</span> Japanese</div>
+      <div class="ticker-item"><span></span> Critical Thinking</div>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="feat-card">
+      <div class="feat-icon"></div>
+      <h3>AI Tutor</h3>
+      <p>Chat with a friendly AI teacher that adapts to your level and explains concepts in the simplest possible way.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"></div>
+      <h3>Track Progress</h3>
+      <p>Monitor your XP, streaks, skill completion rates and learning activity on a beautiful personal dashboard.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"></div>
+      <h3>Structured Curriculum</h3>
+      <p>Follow AI-generated week-by-week study plans with lessons, practice sessions, and mini projects.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">▶️</div>
+      <h3>YouTube Resources</h3>
+      <p>When you need extra help, the AI automatically suggests free YouTube tutorials for deeper understanding.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"></div>
+      <h3>Earn Badges</h3>
+      <p>Complete milestones to unlock achievement badges. Stay motivated with streaks and XP leaderboards.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon"></div>
+      <h3>Secure & Private</h3>
+      <p>Your learning data is protected with JWT authentication and encrypted password storage.</p>
+    </div>
+  </section>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="auth-overlay" onclick="closeOverlay(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAuth()">✕</button>
+    <h2>Welcome to SkillForge</h2>
+    <p>Your AI-powered learning journey starts here.</p>
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+      <button class="tab" id="tab-register" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+      <div class="err-msg" id="l-err"></div>
+      <button class="btn btn-primary btn-submit" onclick="doLogin()">Login →</button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="display:none">
+      <div class="form-group"><label>Full Name</label><input type="text" id="r-name" placeholder="Alex Chen"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="r-pass" placeholder="••••••••"></div>
+      <div class="err-msg" id="r-err"></div>
+      <div class="success-msg" id="r-ok"></div>
+      <button class="btn btn-primary btn-submit" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Animated starfield / particle canvas
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();window.addEventListener('resize',resize);
+function initParticles(){
+  particles=[];
+  for(let i=0;i<120;i++){
+    particles.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      r:Math.random()*1.5+.3,
+      vx:(Math.random()-.5)*.3,
+      vy:(Math.random()-.5)*.3,
+      alpha:Math.random()*.7+.2
+    });
+  }
+}
+initParticles();
+function drawLines(){
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x;
+      const dy=particles[i].y-particles[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){
+        ctx.beginPath();
+        ctx.strokeStyle=`rgba(99,210,255,${(1-dist/120)*.15})`;
+        ctx.lineWidth=.5;
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+}
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawLines();
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>canvas.width)p.vx*=-1;
+    if(p.y<0||p.y>canvas.height)p.vy*=-1;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(99,210,255,${p.alpha})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// AUTH
+function openAuth(tab){document.getElementById('auth-overlay').classList.add('show');switchTab(tab);}
+function closeAuth(){document.getElementById('auth-overlay').classList.remove('show');}
+function closeOverlay(e){if(e.target===document.getElementById('auth-overlay'))closeAuth();}
+function switchTab(t){
+  document.getElementById('tab-login').className='tab'+(t==='login'?' active':'');
+  document.getElementById('tab-register').className='tab'+(t==='register'?' active':'');
+  document.getElementById('form-login').style.display=t==='login'?'block':'none';
+  document.getElementById('form-register').style.display=t==='register'?'block':'none';
+}
+
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('l-err');
+  err.className='err-msg';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error;err.className='err-msg show';return;}
+    localStorage.setItem('sf_token',d.token);
+    localStorage.setItem('sf_name',d.name);
+    localStorage.setItem('sf_uid',d.user_id);
+    window.location.href='/dashboard';
+  }catch(e){err.textContent='Connection error. Is the server running?';err.className='err-msg show';}
+}
+
+async function doRegister(){
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const err=document.getElementById('r-err');
+  const ok=document.getElementById('r-ok');
+  err.className='err-msg';ok.className='success-msg';
+  try{
+    const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password:pass})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error;err.className='err-msg show';return;}
+    localStorage.setItem('sf_token',d.token);
+    localStorage.setItem('sf_name',d.name);
+    localStorage.setItem('sf_uid',d.user_id);
+    window.location.href='/dashboard';
+  }catch(e){err.textContent='Connection error. Is the server running?';err.className='err-msg show';}
+}
+
+// Check already logged in
+if(localStorage.getItem('sf_token')&&window.location.pathname==='/'){
+  // already logged in — show login still (user may want to re-auth)
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){
+  if(document.getElementById('form-login').style.display!=='none')doLogin();
+  else doRegister();
+}});
+</script>
+</body>
+</html>

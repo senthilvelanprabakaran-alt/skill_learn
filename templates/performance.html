@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SkillForge Performance</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+:root{
+--bg:#030712;
+--surface:#0d1117;
+--surface2:#161b22;
+--border:rgba(99,210,255,.15);
+--cyan:#63d2ff;
+--cyan2:#00f5c8;
+--pink:#f472b6;
+--amber:#fbbf24;
+--text:#e2e8f0;
+--muted:#64748b;
+--font-head:'Exo 2',sans-serif;
+--font-mono:'Space Mono',monospace;
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html,body{
+height:100%;
+background:var(--bg);
+color:var(--text);
+font-family:var(--font-head);
+overflow-x:hidden;
+}
+
+/* ===== BACKGROUND ===== */
+
+#bg-canvas{
+position:fixed;
+inset:0;
+z-index:0;
+opacity:.35;
+}
+
+.page{
+position:relative;
+z-index:1;
+min-height:100vh;
+padding-bottom:4rem;
+}
+
+/* ===== NAV ===== */
+
+nav{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:1.5rem 3rem;
+border-bottom:1px solid var(--border);
+backdrop-filter:blur(20px);
+background:rgba(3,7,18,.75);
+position:sticky;
+top:0;
+z-index:50;
+}
+
+.logo{
+font-size:1.6rem;
+font-weight:900;
+letter-spacing:2px;
+color:var(--cyan);
+text-shadow:0 0 20px rgba(99,210,255,.5);
+}
+
+.logo span{
+color:var(--cyan2);
+}
+
+.nav-links{
+display:flex;
+gap:1rem;
+}
+
+.nav-links a{
+text-decoration:none;
+color:var(--text);
+padding:.7rem 1.2rem;
+border-radius:8px;
+transition:.3s;
+font-weight:600;
+}
+
+.nav-links a:hover{
+background:rgba(99,210,255,.08);
+color:var(--cyan);
+}
+
+/* ===== HERO ===== */
+
+.hero{
+padding:4rem 3rem 2rem;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:2rem;
+flex-wrap:wrap;
+}
+
+.hero-left h1{
+font-size:clamp(2.5rem,6vw,4.5rem);
+font-weight:900;
+line-height:1.05;
+margin-bottom:1rem;
+}
+
+.hero-left h1 span{
+background:linear-gradient(135deg,var(--cyan),var(--pink));
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero-left p{
+color:var(--muted);
+max-width:600px;
+line-height:1.8;
+font-size:1.05rem;
+}
+
+.hero-right{
+display:flex;
+gap:1rem;
+flex-wrap:wrap;
+}
+
+.stat-card{
+background:var(--surface);
+border:1px solid var(--border);
+padding:1.5rem;
+border-radius:18px;
+min-width:180px;
+backdrop-filter:blur(10px);
+transition:.3s;
+}
+
+.stat-card:hover{
+transform:translateY(-5px);
+border-color:var(--cyan);
+box-shadow:0 0 25px rgba(99,210,255,.12);
+}
+
+.stat-card h2{
+font-size:2rem;
+margin-bottom:.3rem;
+color:var(--cyan);
+}
+
+.stat-card p{
+color:var(--muted);
+}
+
+/* ===== GRID ===== */
+
+.grid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:2rem;
+padding:2rem 3rem;
+}
+
+.left,
+.right{
+display:flex;
+flex-direction:column;
+gap:2rem;
+}
+
+/* ===== CARDS ===== */
+
+.card{
+background:var(--surface);
+border:1px solid var(--border);
+border-radius:20px;
+padding:2rem;
+position:relative;
+overflow:hidden;
+transition:.3s;
+}
+
+.card:hover{
+border-color:var(--cyan);
+box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+
+.card::before{
+content:'';
+position:absolute;
+width:300px;
+height:300px;
+background:radial-gradient(circle,rgba(99,210,255,.08),transparent 70%);
+top:-150px;
+right:-100px;
+pointer-events:none;
+}
+
+.card-title{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:1.5rem;
+}
+
+.card-title h2{
+font-size:1.3rem;
+font-weight:800;
+}
+
+/* ===== CHART ===== */
+
+.chart-container{
+height:400px;
+}
+
+/* ===== SKILLS ===== */
+
+.skill{
+margin-bottom:1.5rem;
+}
+
+.skill-top{
+display:flex;
+justify-content:space-between;
+margin-bottom:.5rem;
+}
+
+.skill-name{
+display:flex;
+align-items:center;
+gap:.5rem;
+font-weight:700;
+}
+
+.progress{
+height:10px;
+background:#111827;
+border-radius:100px;
+overflow:hidden;
+}
+
+.progress span{
+display:block;
+height:100%;
+border-radius:100px;
+background:linear-gradient(135deg,var(--cyan),var(--cyan2));
+}
+
+/* ===== ACHIEVEMENTS ===== */
+
+.achievement{
+display:flex;
+align-items:center;
+gap:1rem;
+padding:1rem;
+background:rgba(255,255,255,.03);
+border-radius:14px;
+margin-bottom:1rem;
+border:1px solid rgba(255,255,255,.05);
+}
+
+.achievement-icon{
+font-size:2rem;
+}
+
+.achievement h4{
+margin-bottom:.3rem;
+}
+
+.achievement p{
+color:var(--muted);
+font-size:.9rem;
+}
+
+/* ===== HEATMAP ===== */
+
+.heatmap{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:.5rem;
+margin-top:1rem;
+}
+
+.day{
+height:45px;
+border-radius:10px;
+background:#111827;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:.8rem;
+font-family:var(--font-mono);
+}
+
+.active-1{background:#123d4d;}
+.active-2{background:#1b6980;}
+.active-3{background:#2492b3;}
+.active-4{background:#32d4ff;color:#000;}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width:1000px){
+
+.grid{
+grid-template-columns:1fr;
+}
+
+.hero{
+padding:3rem 1.5rem 1rem;
+}
+
+.grid{
+padding:1.5rem;
+}
+
+nav{
+padding:1rem 1.5rem;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="page">
+
+<!-- ===== NAV ===== -->
+
+<nav>
+
+<div class="logo">
+SKILL<span>FORGE</span>
+</div>
+
+<div class="nav-links">
+<a href="/dashboard">Dashboard</a>
+<a href="/learn/Python">Learn</a>
+<a href="/profile">Profile</a>
+<a href="/challenges">Challenges</a>
+</div>
+
+</nav>
+
+<!-- ===== HERO ===== -->
+
+<section class="hero">
+
+<div class="hero-left">
+
+<h1>
+Performance <span>Analytics</span>
+</h1>
+
+<p>
+Track your learning consistency, XP growth, skill mastery, and AI learning activity in real-time.
+</p>
+
+</div>
+
+<div class="hero-right">
+
+<div class="stat-card">
+<h2 id="total-xp">0</h2>
+<p>Total XP</p>
+</div>
+
+<div class="stat-card">
+<h2 id="streak">0</h2>
+<p>Day Streak</p>
+</div>
+
+<div class="stat-card">
+<h2 id="skills-count">0</h2>
+<p>Skills Active</p>
+</div>
+
+</div>
+
+</section>
+
+<!-- ===== GRID ===== -->
+
+<div class="grid">
+
+<div class="left">
+
+<!-- CHART -->
+
+<div class="card">
+
+<div class="card-title">
+<h2>📈 Weekly XP Growth</h2>
+</div>
+
+<div class="chart-container">
+<canvas id="xpChart"></canvas>
+</div>
+
+</div>
+
+<!-- ACTIVITY -->
+
+<div class="card">
+
+<div class="card-title">
+<h2>🔥 Study Heatmap</h2>
+</div>
+
+<div class="heatmap">
+
+<div class="day active-4">M</div>
+<div class="day active-3">T</div>
+<div class="day active-2">W</div>
+<div class="day active-4">T</div>
+<div class="day active-3">F</div>
+<div class="day active-2">S</div>
+<div class="day active-1">S</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="right">
+
+<!-- SKILLS -->
+
+<div class="card">
+
+<div class="card-title">
+<h2>🚀 Skill Progress</h2>
+</div>
+
+<div id="skills">
+
+</div>
+
+</div>
+
+<!-- ACHIEVEMENTS -->
+
+<div class="card">
+
+<div class="card-title">
+<h2>🏆 Achievements</h2>
+</div>
+
+<div class="achievement">
+<div class="achievement-icon">🚀</div>
+<div>
+<h4>First Step</h4>
+<p>Completed first lesson</p>
+</div>
+</div>
+
+<div class="achievement">
+<div class="achievement-icon">⚡</div>
+<div>
+<h4>XP Hunter</h4>
+<p>Earned 500 XP</p>
+</div>
+</div>
+
+<div class="achievement">
+<div class="achievement-icon">🔥</div>
+<div>
+<h4>Dedicated</h4>
+<p>Maintained 7-day streak</p>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* ===== BACKGROUND ===== */
+
+const canvas=document.getElementById('bg-canvas');
+const ctx=canvas.getContext('2d');
+
+function resize(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+}
+
+resize();
+
+window.addEventListener('resize',resize);
+
+const particles=[];
+
+for(let i=0;i<120;i++){
+
+particles.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+r:Math.random()*1.7,
+vx:(Math.random()-.5)*.3,
+vy:(Math.random()-.5)*.3,
+a:Math.random()
+});
+
+}
+
+function animate(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+particles.forEach(p=>{
+
+p.x+=p.vx;
+p.y+=p.vy;
+
+if(p.x<0||p.x>canvas.width)p.vx*=-1;
+if(p.y<0||p.y>canvas.height)p.vy*=-1;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+ctx.fillStyle=`rgba(99,210,255,${p.a})`;
+ctx.fill();
+
+});
+
+requestAnimationFrame(animate);
+
+}
+
+animate();
+
+/* ===== PERFORMANCE DATA ===== */
+
+async function loadPerformance(){
+
+const token=localStorage.getItem('sf_token');
+
+const res=await fetch('/api/performance',{
+
+headers:{
+'Authorization':'Bearer '+token
+}
+
+});
+
+const data=await res.json();
+
+/* ===== STATS ===== */
+
+document.getElementById('total-xp').innerText=
+data.total_xp || 1200;
+
+document.getElementById('streak').innerText=
+data.streak || 7;
+
+document.getElementById('skills-count').innerText=
+data.skills?.length || 5;
+
+/* ===== CHART ===== */
+
+new Chart(document.getElementById('xpChart'),{
+
+type:'line',
+
+data:{
+
+labels:data.labels || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+
+datasets:[{
+
+label:'XP Growth',
+
+data:data.xp || [20,40,60,80,100,120,150],
+
+borderColor:'#63d2ff',
+
+backgroundColor:'rgba(99,210,255,.15)',
+
+fill:true,
+
+tension:.4,
+
+borderWidth:3,
+
+pointRadius:5,
+
+pointBackgroundColor:'#00f5c8'
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+maintainAspectRatio:false,
+
+plugins:{
+legend:{
+labels:{
+color:'#e2e8f0'
+}
+}
+},
+
+scales:{
+
+x:{
+ticks:{
+color:'#94a3b8'
+},
+grid:{
+color:'rgba(255,255,255,.04)'
+}
+},
+
+y:{
+ticks:{
+color:'#94a3b8'
+},
+grid:{
+color:'rgba(255,255,255,.04)'
+}
+}
+
+}
+
+}
+
+});
+
+/* ===== SKILLS ===== */
+
+const container=document.getElementById('skills');
+
+const skills=data.skills || [
+
+{name:'Python',icon:'🐍',progress:75},
+{name:'English',icon:'🇬🇧',progress:60},
+{name:'Aptitude',icon:'🧮',progress:45},
+{name:'Leadership',icon:'👑',progress:30}
+
+];
+
+skills.forEach(s=>{
+
+container.innerHTML += `
+
+<div class="skill">
+
+<div class="skill-top">
+
+<div class="skill-name">
+<span>${s.icon}</span>
+${s.name}
+</div>
+
+<div>
+${s.progress}%
+</div>
+
+</div>
+
+<div class="progress">
+<span style="width:${s.progress}%"></span>
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+loadPerformance();
+
+</script>
+
+</body>
+</html>

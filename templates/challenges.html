@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenges — SkillForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#030712;--surface:#0d1117;--surface2:#161b22;--surface3:#1f2937;
+  --border:rgba(99,210,255,0.12);--border2:rgba(99,210,255,0.28);
+  --cyan:#63d2ff;--cyan2:#00f5c8;--amber:#fbbf24;--pink:#f472b6;
+  --purple:#a78bfa;--orange:#fb923c;--green:#34d399;--red:#f87171;
+  --text:#e2e8f0;--muted:#64748b;
+  --font-head:'Exo 2',sans-serif;--font-mono:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-head);}
+#bg-canvas{position:fixed;inset:0;z-index:0;opacity:.3;pointer-events:none;}
+.page{position:relative;z-index:1;display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;}
+.sidebar-logo{padding:1.8rem 1.5rem;border-bottom:1px solid var(--border);font-size:1.3rem;font-weight:900;letter-spacing:2px;color:var(--cyan);text-shadow:0 0 20px rgba(99,210,255,.4);}
+.sidebar-logo span{color:var(--cyan2);}
+.sidebar-nav{flex:1;padding:1.5rem 0;overflow-y:auto;}
+.nav-label{padding:.3rem 1.5rem;font-size:.65rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:.3rem;}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.5rem;cursor:pointer;transition:.2s;color:var(--muted);font-weight:600;font-size:.9rem;text-decoration:none;border-left:3px solid transparent;}
+.nav-item:hover,.nav-item.active{color:var(--cyan);background:rgba(99,210,255,.06);border-left-color:var(--cyan);}
+.nav-item .icon{font-size:1.1rem;width:20px;text-align:center;}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid var(--border);}
+.user-chip{display:flex;align-items:center;gap:.75rem;}
+.s-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;color:#030712;flex-shrink:0;}
+.user-info{flex:1;overflow:hidden;}
+.user-name-s{font-weight:700;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.user-level{font-size:.7rem;color:var(--cyan2);font-family:var(--font-mono);}
+.logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;}
+.logout-btn:hover{color:var(--red);}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:1.2rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(13,17,23,.8);backdrop-filter:blur(10px);position:sticky;top:0;z-index:40;}
+.topbar-title{font-size:1.2rem;font-weight:800;}
+.xp-badge{display:flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:.4rem .9rem;font-family:var(--font-mono);font-size:.78rem;color:var(--amber);}
+.content{padding:2rem;flex:1;}
+
+/* HERO BANNER */
+.hero-banner{background:linear-gradient(135deg,rgba(99,210,255,.07),rgba(167,139,250,.07));border:1px solid var(--border2);border-radius:16px;padding:2rem 2.5rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;}
+.hero-text h1{font-size:1.8rem;font-weight:900;margin-bottom:.4rem;}
+.hero-text h1 span{background:linear-gradient(135deg,var(--cyan),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-text p{color:var(--muted);font-size:.9rem;max-width:500px;line-height:1.65;}
+.hero-stats{display:flex;gap:1rem;flex-wrap:wrap;}
+.h-stat{text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem 1.3rem;min-width:90px;}
+.h-stat-val{font-size:1.5rem;font-weight:900;font-family:var(--font-mono);color:var(--cyan);}
+.h-stat-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:.2rem;}
+
+/* SKILL TABS */
+.skill-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.skill-tab{padding:.45rem 1.1rem;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font-head);font-size:.82rem;font-weight:600;cursor:pointer;transition:.2s;}
+.skill-tab:hover,.skill-tab.active{border-color:var(--cyan);color:var(--cyan);background:rgba(99,210,255,.08);}
+
+/* SECTION HEAD */
+.section-head{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;margin-top:.5rem;}
+.section-head h2{font-size:1rem;font-weight:800;}
+.s-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+/* CHALLENGE GRID */
+.challenges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.2rem;margin-bottom:2.5rem;}
+
+.ch-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.4rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
+.ch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ch-color,var(--cyan));}
+.ch-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+.ch-card.done::after{content:'✓ Completed';position:absolute;top:.75rem;right:.75rem;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.3);color:var(--green);font-size:.62rem;font-weight:700;padding:.15rem .5rem;border-radius:100px;font-family:var(--font-mono);}
+
+.ch-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem;}
+.ch-icon{font-size:1.8rem;line-height:1;}
+.ch-badges{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:flex-end;}
+.ch-tag{font-size:.6rem;padding:.2rem .5rem;border-radius:4px;font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.tag-easy{background:rgba(52,211,153,.15);color:var(--green);}
+.tag-medium{background:rgba(251,191,36,.15);color:var(--amber);}
+.tag-hard{background:rgba(248,113,113,.15);color:var(--red);}
+.tag-timed{background:rgba(167,139,250,.15);color:var(--purple);}
+.tag-daily{background:rgba(99,210,255,.12);color:var(--cyan);}
+
+.ch-title{font-size:1rem;font-weight:800;margin-bottom:.25rem;}
+.ch-concept{font-size:.72rem;color:var(--cyan2);font-family:var(--font-mono);margin-bottom:.5rem;}
+.ch-desc{font-size:.82rem;color:var(--muted);line-height:1.5;margin-bottom:1rem;}
+.ch-footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+.ch-xp{font-size:.8rem;font-family:var(--font-mono);color:var(--amber);font-weight:700;}
+.ch-meta{font-size:.7rem;color:var(--muted);}
+.ch-btn{background:linear-gradient(135deg,var(--ch-color,var(--cyan)),var(--ch-color2,var(--cyan2)));color:#030712;border:none;border-radius:8px;padding:.42rem .85rem;font-weight:800;font-size:.77rem;cursor:pointer;transition:.2s;font-family:var(--font-head);white-space:nowrap;}
+.ch-btn:hover{transform:scale(1.04);}
+.ch-btn.redo{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3);}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(3,7,18,.9);z-index:200;backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;width:100%;max-width:660px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7);}
+
+.modal-head{padding:1.3rem 1.6rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.mh-left h3{font-size:1.05rem;font-weight:800;margin-bottom:.15rem;}
+.mh-left .sub{font-size:.72rem;color:var(--muted);}
+.mh-right{display:flex;align-items:center;gap:.8rem;}
+.timer-box{display:flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.95rem;font-weight:700;color:var(--amber);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.25);border-radius:8px;padding:.4rem .8rem;}
+.timer-box.danger{color:var(--red);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08);animation:pulse .6s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+.modal-close:hover{color:var(--red);}
+
+.modal-prog-wrap{height:4px;background:var(--surface3);flex-shrink:0;}
+.modal-prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--cyan2));transition:width .4s;}
+
+.modal-body{flex:1;overflow-y:auto;padding:1.6rem;}
+.modal-body::-webkit-scrollbar{width:4px;}
+.modal-body::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px;}
+
+/* Questions */
+.q-block{margin-bottom:1.8rem;}
+.q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem;}
+.q-num{font-size:.62rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:2px;text-transform:uppercase;}
+.q-concept{font-size:.62rem;color:var(--cyan2);font-family:var(--font-mono);background:rgba(0,245,200,.08);border:1px solid rgba(0,245,200,.18);padding:.15rem .5rem;border-radius:4px;}
+.q-text{font-size:.97rem;font-weight:700;line-height:1.5;margin-bottom:1rem;}
+.q-opts{display:flex;flex-direction:column;gap:.48rem;}
+.q-opt{display:flex;align-items:center;gap:.7rem;padding:.72rem 1rem;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all .18s;font-size:.88rem;}
+.q-opt:hover{border-color:var(--cyan);background:rgba(99,210,255,.05);}
+.q-opt.selected{border-color:var(--cyan);background:rgba(99,210,255,.1);color:var(--cyan);}
+.q-opt.correct{border-color:var(--green)!important;background:rgba(52,211,153,.1)!important;color:var(--green)!important;}
+.q-opt.wrong{border-color:var(--red)!important;background:rgba(248,113,113,.07)!important;color:var(--red)!important;}
+.q-opt input{accent-color:var(--cyan);pointer-events:none;flex-shrink:0;}
+.q-exp{margin-top:.75rem;padding:.65rem .85rem;background:var(--surface3);border-left:3px solid var(--cyan2);border-radius:0 8px 8px 0;font-size:.79rem;color:var(--muted);line-height:1.55;display:none;}
+.q-exp.show{display:block;}
+
+/* Result screen */
+.result-box{text-align:center;padding:1rem 0 1.5rem;}
+.result-emoji{font-size:3rem;display:block;margin-bottom:.8rem;}
+.result-score{font-size:2.8rem;font-weight:900;font-family:var(--font-mono);}
+.result-score.pass{color:var(--green);}
+.result-score.fail{color:var(--red);}
+.result-msg{font-size:1rem;font-weight:700;margin:.3rem 0;}
+.result-sub{font-size:.83rem;color:var(--muted);margin-bottom:1.2rem;}
+.result-xp{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.88rem;color:var(--amber);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);padding:.45rem 1.1rem;border-radius:100px;margin-bottom:1.2rem;}
+.badges-earned{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.2rem;}
+.badge-pop{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.5rem .85rem;font-size:.77rem;display:flex;align-items:center;gap:.35rem;animation:pop .4s ease;}
+@keyframes pop{0%{transform:scale(0);opacity:0}80%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.result-breakdown{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:left;margin-bottom:1rem;}
+.rb-row{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;padding:.3rem 0;border-bottom:1px solid var(--border);}
+.rb-row:last-child{border-bottom:none;}
+.rb-label{color:var(--muted);}
+.rb-val{font-family:var(--font-mono);font-weight:700;}
+
+.modal-foot{padding:1rem 1.6rem;border-top:1px solid var(--border);display:flex;gap:.7rem;justify-content:flex-end;flex-shrink:0;}
+.btn{padding:.6rem 1.3rem;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;border:none;transition:.2s;font-family:var(--font-head);}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#030712;}
+.btn-primary:hover{transform:scale(1.03);}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:var(--muted);font-size:.9rem;}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:.7rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:.9rem 1.4rem;font-size:.88rem;z-index:999;transform:translateY(100px);opacity:0;transition:.3s;max-width:300px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.xp{border-color:var(--amber);color:var(--amber);}
+.toast.badge{border-color:var(--purple);color:var(--purple);}
+
+@media(max-width:768px){
+  .sidebar{display:none;}
+  .main{margin-left:0;}
+  .content{padding:1rem;}
+  .challenges-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="page">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">SKILL<span>FORGE</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Main</div>
+    <a class="nav-item" href="/dashboard"><span class="icon">⚡</span>Dashboard</a>
+    <a class="nav-item" href="/profile"><span class="icon">👤</span>Profile</a>
+    <a class="nav-item" href="/performance"><span class="icon">📈</span>Performance</a>
+    <a class="nav-item active" href="/challenges"><span class="icon">🏆</span>Challenges</a>
+    <div class="nav-label" style="margin-top:1rem;">Quick Learn</div>
+    <a class="nav-item" href="/learn/Python"><span class="icon">🐍</span>Python</a>
+    <a class="nav-item" href="/learn/JavaScript"><span class="icon">⚡</span>JavaScript</a>
+    <a class="nav-item" href="/learn/English"><span class="icon">🇬🇧</span>English</a>
+    <a class="nav-item" href="/learn/Aptitude"><span class="icon">🧮</span>Aptitude</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="s-avatar" id="sidebar-avatar">?</div>
+      <div class="user-info">
+        <div class="user-name-s" id="sidebar-name">Loading...</div>
+        <div class="user-level" id="sidebar-level">Level 1</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">⏻</button>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">🏆 Challenges <span style="color:var(--muted);font-weight:400;font-size:.85rem;">— Concept-based skill tests</span></div>
+    <div class="xp-badge">⚡ <span id="total-xp">0</span> XP</div>
+  </div>
+
+  <div class="content">
+
+    <!-- HERO -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <h1>Prove Your <span>Concept Mastery</span></h1>
+        <p>Every challenge targets a specific concept from your learning path. Complete them to earn XP, unlock badges, and show up on your achievement profile.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="h-stat"><div class="h-stat-val" id="h-done">0</div><div class="h-stat-label">Done</div></div>
+        <div class="h-stat"><div class="h-stat-val" id="h-xp">0</div><div class="h-stat-label">XP</div></div>
+        <div class="h-stat"><div class="h-stat-val" id="h-streak">🔥0</div><div class="h-stat-label">Streak</div></div>
+        <div class="h-stat"><div class="h-stat-val" id="h-badges">0</div><div class="h-stat-label">Badges</div></div>
+      </div>
+    </div>
+
+    <!-- SKILL FILTER TABS -->
+    <div class="skill-tabs">
+      <button class="skill-tab active" onclick="filterChallenges('All',this)">🌐 All</button>
+      <button class="skill-tab" onclick="filterChallenges('Python',this)">🐍 Python</button>
+      <button class="skill-tab" onclick="filterChallenges('JavaScript',this)">⚡ JavaScript</button>
+      <button class="skill-tab" onclick="filterChallenges('SQL',this)">🗄️ SQL</button>
+      <button class="skill-tab" onclick="filterChallenges('English',this)">🇬🇧 English</button>
+      <button class="skill-tab" onclick="filterChallenges('Aptitude',this)">🧮 Aptitude</button>
+      <button class="skill-tab" onclick="filterChallenges('Data Structures',this)">🌲 DSA</button>
+    </div>
+
+    <!-- DAILY -->
+    <div class="section-head">
+      <div class="s-dot" style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></div>
+      <h2>Daily Challenges <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono);margin-left:.4rem;">Refreshes daily</span></h2>
+    </div>
+    <div class="challenges-grid" id="daily-grid"><div class="loading"><div class="spin"></div>Loading...</div></div>
+
+    <!-- CONCEPT -->
+    <div class="section-head">
+      <div class="s-dot" style="background:var(--purple);box-shadow:0 0 8px var(--purple)"></div>
+      <h2>Concept Challenges <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono);margin-left:.4rem;">Medium difficulty</span></h2>
+    </div>
+    <div class="challenges-grid" id="concept-grid"><div class="loading"><div class="spin"></div>Loading...</div></div>
+
+    <!-- SPEED -->
+    <div class="section-head">
+      <div class="s-dot" style="background:var(--orange);box-shadow:0 0 8px var(--orange)"></div>
+      <h2>⚡ Speed Rounds <span style="font-size:.7rem;color:var(--muted);font-family:var(--font-mono);margin-left:.4rem;">Timed · Hard</span></h2>
+    </div>
+    <div class="challenges-grid" id="speed-grid"><div class="loading"><div class="spin"></div>Loading...</div></div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="ch-overlay">
+  <div class="modal" id="ch-modal">
+    <div class="modal-head">
+      <div class="mh-left">
+        <h3 id="modal-title">Challenge</h3>
+        <div class="sub" id="modal-sub">Loading...</div>
+      </div>
+      <div class="mh-right">
+        <div class="timer-box" id="timer-box" style="display:none">⏱ <span id="timer-val">60</span>s</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="modal-prog-wrap"><div class="modal-prog-fill" id="modal-prog" style="width:0%"></div></div>
+    <div class="modal-body" id="modal-body"><div class="loading"><div class="spin"></div>Loading challenge...</div></div>
+    <div class="modal-foot" id="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="submit-btn" onclick="submitChallenge(false)" disabled>Submit Answers</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOKEN = localStorage.getItem('sf_token');
+const NAME  = localStorage.getItem('sf_name') || 'User';
+if(!TOKEN) window.location.href='/';
+
+document.getElementById('sidebar-avatar').textContent = NAME[0].toUpperCase();
+document.getElementById('sidebar-name').textContent   = NAME;
+
+// ── CANVAS BG ────────────────────────────────────────────────
+const cv=document.getElementById('bg-canvas'),cx=cv.getContext('2d');
+function rzCv(){cv.width=innerWidth;cv.height=innerHeight;}rzCv();window.addEventListener('resize',rzCv);
+const pts=Array.from({length:90},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.4+.3,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,a:Math.random()*.55+.2}));
+(function drawBg(){cx.clearRect(0,0,cv.width,cv.height);pts.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>cv.width)p.vx*=-1;if(p.y<0||p.y>cv.height)p.vy*=-1;pts.slice(i+1).forEach(q=>{const d=Math.hypot(p.x-q.x,p.y-q.y);if(d<105){cx.beginPath();cx.strokeStyle=`rgba(99,210,255,${(1-d/105)*.11})`;cx.moveTo(p.x,p.y);cx.lineTo(q.x,q.y);cx.stroke();}});cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=`rgba(99,210,255,${p.a})`;cx.fill();});requestAnimationFrame(drawBg);})();
+
+// ── CHALLENGE BANK ────────────────────────────────────────────
+// Each challenge targets one specific concept from the skill's curriculum.
+// Fields: id, skill, concept, title, desc, diff, xp, timed, timeLimit, color, color2, questions[]
+// Question fields: q (question text), opts (options array), a (correct answer), e (explanation)
+const BANK = [
+
+  // ── PYTHON ──────────────────────────────────────────────────
+  {id:'py-datatypes',skill:'Python',concept:'Variables & Data Types',title:'Data Type Detective',desc:'Identify types, conversions and valid naming rules.',diff:'Easy',xp:100,timed:false,color:'#63d2ff',color2:'#00f5c8',
+   questions:[
+    {q:'Which of these is a valid Python variable name?',opts:['2score','my-var','_total','class'],a:'_total',e:"Variables can start with _ or a letter but not digits/hyphens. 'class' is a reserved keyword."},
+    {q:'What type does Python assign to 3.14?',opts:['int','str','float','double'],a:'float',e:'3.14 is a floating-point literal — Python assigns it the type float.'},
+    {q:'Result of int("42") + 8?',opts:["'428'",'50','Error','42+8'],a:'50',e:"int('42') converts the string to integer 42. Then 42+8=50."},
+    {q:'What does bool(0) return?',opts:['True','False','0','None'],a:'False',e:'In Python, 0 is falsy. bool(0) evaluates to False.'},
+    {q:'Which built-in checks a variable\'s type?',opts:['typeof()','type()','gettype()','typeOf()'],a:'type()',e:"Python's type() function returns the data type of any object."},
+   ]},
+
+  {id:'py-loops',skill:'Python',concept:'Loops & Iteration',title:'Loop Logic',desc:'for loops, while, break, continue, and range().',diff:'Easy',xp:100,timed:false,color:'#63d2ff',color2:'#00f5c8',
+   questions:[
+    {q:'What does range(1,6) produce?',opts:['1,2,3,4,5,6','1,2,3,4,5','0,1,2,3,4,5','2,3,4,5'],a:'1,2,3,4,5',e:'range(start,stop) goes from start up to (but NOT including) stop.'},
+    {q:'Which keyword exits a loop immediately?',opts:['exit','stop','break','return'],a:'break',e:"'break' terminates the innermost loop right away."},
+    {q:'What does continue do inside a loop?',opts:['Ends the loop','Skips to next iteration','Returns a value','Pauses execution'],a:'Skips to next iteration',e:"'continue' skips the rest of the current loop body and jumps to the next iteration."},
+    {q:'How many times does this run? for i in range(3):',opts:['2','3','4','0'],a:'3',e:'range(3) produces 0,1,2 — three values, so the body runs 3 times.'},
+    {q:'Output of: for i in range(2,5): print(i)',opts:['2 3 4','2 3 4 5','1 2 3 4','3 4 5'],a:'2 3 4',e:'range(2,5) gives 2,3,4. Each is printed on a separate line.'},
+   ]},
+
+  {id:'py-funcs',skill:'Python',concept:'Functions',title:'Function Fundamentals',desc:'def, return, default args, *args, and scope.',diff:'Medium',xp:150,timed:false,color:'#63d2ff',color2:'#00f5c8',
+   questions:[
+    {q:'What keyword defines a function in Python?',opts:['function','func','def','fn'],a:'def',e:"'def' keyword followed by the function name defines a user-created function."},
+    {q:'What does a function return with no return statement?',opts:['0','False','None','Error'],a:'None',e:"Python implicitly returns None when there's no return statement."},
+    {q:'Is def greet(name="World"): valid?',opts:['Yes','No — syntax error','Only in Python 3','Only for str type'],a:'Yes',e:"Default parameter values are perfectly valid Python. name='World' makes the argument optional."},
+    {q:'What is *args used for?',opts:['Keyword arguments','Arbitrary positional args into a tuple','Unpacking a dict','Multiple return values'],a:'Arbitrary positional args into a tuple',e:'*args collects any number of extra positional arguments into a tuple inside the function.'},
+    {q:'Can a local variable be accessed outside its function?',opts:['Yes always','Yes with global keyword','No, it only exists inside','Only if returned'],a:'No, it only exists inside',e:"Local variables are scoped to their function. They don't exist outside it (unless explicitly returned or declared global)."},
+   ]},
+
+  {id:'py-collections',skill:'Python',concept:'Lists, Dicts & Sets',title:'Collection Master',desc:'Lists, dictionaries, sets, tuples — know when to use each.',diff:'Medium',xp:150,timed:false,color:'#63d2ff',color2:'#00f5c8',
+   questions:[
+    {q:'Which collection is IMMUTABLE and ordered?',opts:['List','Dict','Set','Tuple'],a:'Tuple',e:'Tuples are ordered and immutable — once created, their elements cannot be changed.'},
+    {q:'Which method adds to the end of a list?',opts:['insert()','append()','push()','add()'],a:'append()',e:'list.append(item) adds an item to the end. insert(index, item) adds at a specific position.'},
+    {q:'What does dict.get("key", "default") do if the key is missing?',opts:['Raises KeyError','Returns None','Returns "default"','Returns False'],a:'Returns "default"',e:'dict.get(key, default) returns the default value instead of raising KeyError when the key is absent.'},
+    {q:'Can a Python set contain duplicate values?',opts:['Yes','No — sets only store unique values','Only integers','Only strings'],a:'No — sets only store unique values',e:"Sets automatically deduplicate. {1,1,2} becomes {1,2}."},
+    {q:'What is the output of len({"a":1, "b":2, "c":3})?',opts:['6','3','2','Error'],a:'3',e:'len() on a dict returns the number of key-value pairs. This dict has 3 pairs.'},
+   ]},
+
+  {id:'py-speed',skill:'Python',concept:'Mixed Python Concepts',title:'Python Speed Round',desc:'5 mixed Python questions. 45 seconds. Think fast!',diff:'Hard',xp:250,timed:true,timeLimit:45,color:'#f472b6',color2:'#a78bfa',
+   questions:[
+    {q:'Output of print(2**3)?',opts:['5','6','8','9'],a:'8',e:'** is the exponentiation operator. 2**3 = 2×2×2 = 8.'},
+    {q:'Which string method removes whitespace from both ends?',opts:['.strip()','.trim()','.clean()','.remove()'],a:'.strip()',e:"str.strip() removes leading and trailing whitespace characters."},
+    {q:'What does list.pop() do by default?',opts:['Removes first item','Removes last item','Removes all items','Returns last item without removing'],a:'Removes last item',e:"list.pop() with no argument removes AND returns the last element."},
+    {q:'A lambda function is:',opts:['A class method','An anonymous single-expression function','A built-in function','A recursive function'],a:'An anonymous single-expression function',e:"lambda x: x*2 is equivalent to def f(x): return x*2. Quick, anonymous, single-expression."},
+    {q:'What does "in" check in: 3 in [1,2,3]?',opts:['Index of 3','Count of 3','Whether 3 exists in the list','Removes 3'],a:'Whether 3 exists in the list',e:"'in' returns True if the left operand is found anywhere in the iterable."},
+   ]},
+
+  // ── JAVASCRIPT ──────────────────────────────────────────────
+  {id:'js-scope',skill:'JavaScript',concept:'Scope & Variables',title:'Scope Master',desc:'var vs let vs const, hoisting, and closures.',diff:'Medium',xp:150,timed:false,color:'#fbbf24',color2:'#fb923c',
+   questions:[
+    {q:'Which declaration is block-scoped?',opts:['var','let','function','All of them'],a:'let',e:"'let' and 'const' are block-scoped. 'var' is function-scoped and ignores block boundaries."},
+    {q:'What is hoisting in JS?',opts:["Moving code to the bottom","Moving declarations to the top of their scope",'Deleting unused variables','Compiling to bytecode'],a:'Moving declarations to the top of their scope',e:"JavaScript hoists function and var declarations to the top of their scope at compile time (but not their values)."},
+    {q:'const arr=[]; arr.push(1) — what happens?',opts:['TypeError','Works fine','Reassigns arr','Returns undefined'],a:'Works fine',e:"const prevents reassignment of the variable reference. The object it points to can still be mutated."},
+    {q:'A closure is:',opts:['A way to close a tab','A function remembering its outer scope variables','A try-catch block','A loop construct'],a:'A function remembering its outer scope variables',e:"Closures retain access to variables from their enclosing scope even after that scope has finished executing."},
+    {q:'typeof undefined returns?',opts:['"null"','"undefined"','"object"','"void"'],a:'"undefined"',e:"typeof undefined returns the string 'undefined'. Note: typeof null (incorrectly) returns 'object'."},
+   ]},
+
+  {id:'js-dom',skill:'JavaScript',concept:'DOM Manipulation',title:'DOM Dominator',desc:'Selecting elements, events, and modifying the page.',diff:'Easy',xp:100,timed:false,color:'#fbbf24',color2:'#fb923c',
+   questions:[
+    {q:'Which method selects the first element matching a CSS selector?',opts:['getElementById()','getElement()','querySelector()','findElement()'],a:'querySelector()',e:"querySelector('.class') or querySelector('#id') returns the first matching element."},
+    {q:'How do you add a click event listener?',opts:['element.click=fn','element.addEvent("click",fn)','element.addEventListener("click",fn)','element.onclick()=fn'],a:'element.addEventListener("click",fn)',e:"addEventListener(event, handler) is the standard way to attach event listeners in modern JS."},
+    {q:'How do you change an element\'s text content?',opts:['element.value = "text"','element.html = "text"','element.textContent = "text"','element.setText("text")'],a:'element.textContent = "text"',e:"textContent sets the raw text of an element. innerHTML also works but parses HTML (security risk with user data)."},
+    {q:'What does document.createElement("div") do?',opts:['Finds a div','Creates a new div element in memory','Inserts a div into the page','Deletes a div'],a:'Creates a new div element in memory',e:"createElement creates the element but doesn't add it to the page. Use appendChild() or append() to insert it."},
+    {q:'event.preventDefault() is used to:',opts:['Stop the event from bubbling','Block default browser behaviour like form submission','Remove an event listener','Pause JavaScript execution'],a:'Block default browser behaviour like form submission',e:"preventDefault() stops the browser's default action for an event, e.g., stopping a form from submitting or a link from navigating."},
+   ]},
+
+  {id:'js-async',skill:'JavaScript',concept:'Async & Promises',title:'Async JavaScript',desc:'Promises, async/await, and the JS event loop.',diff:'Medium',xp:150,timed:false,color:'#fbbf24',color2:'#fb923c',
+   questions:[
+    {q:'What does .then() receive?',opts:['The error','The resolved value','The promise itself','The rejected reason'],a:'The resolved value',e:".then(callback) fires when the promise resolves. The callback receives the resolved value as its argument."},
+    {q:'Which keyword pauses execution until a Promise resolves?',opts:['pause','wait','await','hold'],a:'await',e:"'await' (used inside an async function) suspends the function until the Promise settles, then returns its value."},
+    {q:'How do you catch a rejected Promise?',opts:['.then()','.catch()','.finally()','.reject()'],a:'.catch()',e:".catch(callback) handles rejected promises. You can also use the second argument of .then(null, onRejected)."},
+    {q:'Promise.all([p1,p2,p3]) resolves when:',opts:['The first resolves','All resolve','Any one resolves','All reject'],a:'All resolve',e:"Promise.all() waits for ALL promises to resolve and returns an array of results. If any rejects, it rejects immediately."},
+    {q:'The event loop checks the callback queue when:',opts:['A timer fires','The call stack is empty','Every 100ms','An error occurs'],a:'The call stack is empty',e:"The event loop only pushes callbacks onto the call stack when it's completely empty, ensuring single-threaded execution."},
+   ]},
+
+  {id:'js-speed',skill:'JavaScript',concept:'Mixed JS Concepts',title:'JS Speed Round',desc:'Mixed JS questions. 45 seconds. No pressure... 🔥',diff:'Hard',xp:250,timed:true,timeLimit:45,color:'#f472b6',color2:'#a78bfa',
+   questions:[
+    {q:'=== differs from == because:',opts:['No difference','=== also checks type','== is stricter','=== is deprecated'],a:'=== also checks type',e:"Strict equality (===) checks value AND type. Loose equality (==) coerces types before comparing."},
+    {q:'NaN === NaN evaluates to:',opts:['true','false','undefined','TypeError'],a:'false',e:"NaN is the only JS value not equal to itself. Use Number.isNaN() to check."},
+    {q:'Which creates a shallow copy of an array?',opts:['arr.copy()','[...arr]','arr.clone()','arr.duplicate()'],a:'[...arr]',e:"Spread syntax [...arr] creates a new array with all the same top-level elements. Deep nesting is not copied."},
+    {q:'"use strict" does what?',opts:['Runs JS faster','Enables strict mode blocking silent errors','Disables eval()','Required in ES6+'],a:'Enables strict mode blocking silent errors',e:"'use strict' prevents things like using undeclared variables and throws errors that would otherwise be silent."},
+    {q:'Which array method does NOT mutate the original?',opts:['push()','pop()','splice()','map()'],a:'map()',e:"map() returns a NEW array. push(), pop(), and splice() all modify the original array in place."},
+   ]},
+
+  // ── SQL ─────────────────────────────────────────────────────
+  {id:'sql-select',skill:'SQL',concept:'SELECT & Filtering',title:'Query Builder',desc:'SELECT, WHERE, ORDER BY, DISTINCT, LIMIT.',diff:'Easy',xp:100,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'Which clause filters rows in SQL?',opts:['GROUP BY','ORDER BY','WHERE','HAVING'],a:'WHERE',e:"WHERE filters rows BEFORE grouping based on a condition. HAVING filters after GROUP BY."},
+    {q:'How do you get only unique values in a column?',opts:['SELECT UNIQUE col','SELECT DISTINCT col','SELECT ONLY col','SELECT col NODUPE'],a:'SELECT DISTINCT col',e:"DISTINCT removes duplicate rows from the result set."},
+    {q:'Which limits number of returned rows (MySQL)?',opts:['TOP','LIMIT','ROWNUM','MAXROWS'],a:'LIMIT',e:"LIMIT n is MySQL/PostgreSQL syntax. SQL Server uses TOP n. Standard SQL uses FETCH FIRST n ROWS ONLY."},
+    {q:'ORDER BY name DESC sorts:',opts:['A→Z','Z→A','By date','Randomly'],a:'Z→A',e:"DESC = descending (Z→A, 9→1). ASC = ascending (A→Z, 1→9). ASC is the default."},
+    {q:'Select all columns from table "products":',opts:['GET * FROM products','SELECT ALL products','SELECT * FROM products','FETCH * products'],a:'SELECT * FROM products',e:"Standard SQL: SELECT columns FROM table. * selects all columns."},
+   ]},
+
+  {id:'sql-joins',skill:'SQL',concept:'JOINs',title:'JOIN the Dots',desc:'INNER, LEFT, RIGHT, FULL OUTER joins.',diff:'Medium',xp:150,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'INNER JOIN returns:',opts:['All rows from left','All rows from right','Only rows matching in both tables','All rows from both'],a:'Only rows matching in both tables',e:"INNER JOIN is the most restrictive — only rows where there's a match in BOTH tables appear."},
+    {q:'LEFT JOIN guarantees:',opts:['Right table rows always appear','Left table rows always appear','Only matching rows','No NULLs'],a:'Left table rows always appear',e:"LEFT JOIN returns ALL rows from the left table plus matched rows from the right. Unmatched right-side columns are NULL."},
+    {q:'Which JOIN returns ALL rows from BOTH tables?',opts:['INNER JOIN','LEFT JOIN','RIGHT JOIN','FULL OUTER JOIN'],a:'FULL OUTER JOIN',e:"FULL OUTER JOIN includes all rows from both tables. Unmatched columns on either side become NULL."},
+    {q:'What keyword specifies the join condition?',opts:['USING','WHERE','ON','MATCH'],a:'ON',e:"JOIN table2 ON table1.col = table2.col specifies which columns link the two tables."},
+    {q:'Table A: 5 rows. Table B: 3 rows. Max rows from INNER JOIN?',opts:['8','15','3','5'],a:'3',e:"INNER JOIN can only return as many matched pairs as exist — bounded by the smaller table. Here at most 3."},
+   ]},
+
+  {id:'sql-agg',skill:'SQL',concept:'Aggregation & GROUP BY',title:'Aggregate Pro',desc:'COUNT, SUM, AVG, GROUP BY, HAVING.',diff:'Medium',xp:150,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'Which function counts rows?',opts:['SUM()','COUNT()','AVG()','MAX()'],a:'COUNT()',e:"COUNT(*) counts all rows. COUNT(column) counts non-NULL values in that column."},
+    {q:'GROUP BY is used to:',opts:['Filter rows','Sort results','Aggregate rows into groups','Join tables'],a:'Aggregate rows into groups',e:"GROUP BY collapses multiple rows with the same value into one group so you can apply aggregate functions."},
+    {q:'HAVING vs WHERE — what is the difference?',opts:['No difference','HAVING filters after GROUP BY; WHERE filters before','WHERE is faster','HAVING works without GROUP BY'],a:'HAVING filters after GROUP BY; WHERE filters before',e:"WHERE filters individual rows before grouping. HAVING filters the resulting groups after GROUP BY."},
+    {q:'SELECT dept, AVG(salary) FROM emp GROUP BY dept — this returns:',opts:['All salaries','One average per employee','One average salary per department','Total salary'],a:'One average salary per department',e:"GROUP BY dept collapses each department into one row. AVG(salary) then computes the average salary per department."},
+    {q:'Which aggregate ignores NULL values?',opts:['COUNT(*)','All aggregates','SUM(), AVG(), MAX(), MIN() — all except COUNT(*)','None — NULLs are counted'],a:'SUM(), AVG(), MAX(), MIN() — all except COUNT(*)',e:"COUNT(*) counts every row including NULLs. SUM/AVG/MAX/MIN automatically skip NULL values."},
+   ]},
+
+  // ── ENGLISH ─────────────────────────────────────────────────
+  {id:'en-grammar',skill:'English',concept:'Grammar & Tenses',title:'Grammar Gauntlet',desc:'Tenses, subject-verb agreement, articles, prepositions.',diff:'Easy',xp:100,timed:false,color:'#a78bfa',color2:'#f472b6',
+   questions:[
+    {q:'Choose the correct sentence:',opts:['He go to school.','He goes to school.','He going to school.','He do go to school.'],a:'He goes to school.',e:"Third-person singular (he/she/it) needs -s/-es on the verb in simple present: goes, not go."},
+    {q:'"I have been waiting for two hours." — Which tense?',opts:['Simple past','Present perfect','Present perfect continuous','Past continuous'],a:'Present perfect continuous',e:"'have/has been + -ing' = present perfect continuous. It shows an ongoing action that started in the past."},
+    {q:'Fill in: "___ apple a day keeps the doctor away."',opts:['A','An','The','No article'],a:'An',e:"Use 'an' before words starting with a VOWEL SOUND. 'Apple' starts with the /æ/ sound."},
+    {q:'Correct: "Neither of the boys are ready."',opts:['Neither of the boys is ready.','Neither of the boys were ready.','Sentence is correct.','Neither boys are ready.'],a:'Neither of the boys is ready.',e:"'Neither' is singular. The verb must agree: 'is' (or 'was' in past), not 'are'."},
+    {q:'Which is the correct past tense? "Yesterday, I ___ to school."',opts:['go','gone','went','going'],a:'went',e:"'Went' is the simple past of 'go'. 'Gone' is the past participle and needs an auxiliary (I have gone)."},
+   ]},
+
+  {id:'en-vocab',skill:'English',concept:'Vocabulary & Idioms',title:'Word Power',desc:'Synonyms, antonyms, idioms, and contextual word choice.',diff:'Easy',xp:100,timed:false,color:'#a78bfa',color2:'#f472b6',
+   questions:[
+    {q:'Synonym of "Eloquent"?',opts:['Silent','Articulate','Awkward','Loud'],a:'Articulate',e:"Eloquent and articulate both mean expressing ideas clearly and persuasively."},
+    {q:'Antonym of "Benevolent"?',opts:['Kind','Generous','Malevolent','Charitable'],a:'Malevolent',e:"Benevolent = wishing good to others. Malevolent = wishing harm. Direct antonyms."},
+    {q:'"Break the ice" means:',opts:['Literally break ice','Relieve tension in a new situation','Start a fight','Finish a task quickly'],a:'Relieve tension in a new situation',e:"'Break the ice' is an idiom meaning to say or do something to make people feel comfortable in an awkward situation."},
+    {q:'Choose the right word: "The report had a serious ___ in its logic."',opts:['flaw','floor','flow','flew'],a:'flaw',e:"'Flaw' = imperfection or error. The others are homophones with different meanings."},
+    {q:'"Loquacious" means:',opts:['Quiet','Very talkative','Confused','Aggressive'],a:'Very talkative',e:"From Latin 'loqui' (to speak). A loquacious person talks a lot!"},
+   ]},
+
+  {id:'en-writing',skill:'English',concept:'Writing & Sentence Structure',title:'Writing Wizard',desc:'Active/passive voice, conjunctions, paragraph structure.',diff:'Medium',xp:150,timed:false,color:'#a78bfa',color2:'#f472b6',
+   questions:[
+    {q:'Convert to passive: "The chef cooked the meal."',opts:['The meal was cooked by the chef.','The chef had cooked the meal.','Cooking was done.','The meal cooked itself.'],a:'The meal was cooked by the chef.',e:"Passive: Object + was/were + past participle + by + subject. Meal (object) → was cooked (past participle) → by the chef."},
+    {q:'Identify the conjunction: "I wanted to go, but it was raining."',opts:['wanted','go','but','raining'],a:'but',e:"'But' is a coordinating conjunction (FANBOYS: For, And, Nor, But, Or, Yet, So) connecting two contrasting clauses."},
+    {q:'A topic sentence in a paragraph:',opts:['Summarises another paragraph','Introduces the main idea of that paragraph','Provides evidence','Concludes the essay'],a:'Introduces the main idea of that paragraph',e:"A topic sentence is usually the first sentence in a body paragraph. It states the main claim that the rest of the paragraph supports."},
+    {q:'Which makes a paragraph coherent?',opts:['Long sentences','Varied topics','Logical flow with linking words','Many adjectives'],a:'Logical flow with linking words',e:"Coherence = ideas connect smoothly. Linking words (however, therefore, furthermore) help readers follow the argument."},
+    {q:'"Despite the rain, he went for a walk." — "Despite" is a:',opts:['Conjunction','Preposition','Adverb','Verb'],a:'Preposition',e:"'Despite' is a preposition that means 'without being affected by'. It's followed by a noun/noun phrase, not a clause (use 'although' for a clause)."},
+   ]},
+
+  {id:'en-speed',skill:'English',concept:'Mixed English',title:'English Speed Round',desc:'Grammar, vocab, idioms — 60 seconds, 5 questions!',diff:'Hard',xp:250,timed:true,timeLimit:60,color:'#f472b6',color2:'#a78bfa',
+   questions:[
+    {q:'Which is spelled correctly?',opts:['Accommodate','Acommodate','Accomodate','Accommoddate'],a:'Accommodate',e:"Accommodate has DOUBLE 'c' and DOUBLE 'm'. A very common spelling mistake!"},
+    {q:'"On the fence" means:',opts:['Sitting on a fence','Undecided','Protecting property','In trouble'],a:'Undecided',e:"'On the fence' = neutral/undecided between two choices."},
+    {q:'Identify the conjunction: "I wanted to go, but it was raining."',opts:['wanted','go','but','raining'],a:'but',e:"'But' is a coordinating conjunction (FANBOYS) joining two contrasting independent clauses."},
+    {q:'Passive voice of "She wrote the letter":',opts:['The letter was written by her.','She had written the letter.','The letter is written.','She was writing the letter.'],a:'The letter was written by her.',e:"Passive: Object (letter) + was + past participle (written) + by + subject (her)."},
+    {q:'"Euphemism" means:',opts:['Exaggeration','A mild expression replacing a harsh one','Comparing using like/as','Repeating sounds'],a:'A mild expression replacing a harsh one',e:"Euphemisms soften blunt language: 'passed away' instead of 'died', 'let go' instead of 'fired'."},
+   ]},
+
+  // ── APTITUDE ────────────────────────────────────────────────
+  {id:'apt-numbers',skill:'Aptitude',concept:'Number Systems',title:'Number Ninja',desc:'HCF, LCM, primes, divisibility rules.',diff:'Easy',xp:100,timed:false,color:'#fb923c',color2:'#fbbf24',
+   questions:[
+    {q:'HCF of 12 and 18?',opts:['3','6','9','12'],a:'6',e:"Factors of 12: {1,2,3,4,6,12}. Factors of 18: {1,2,3,6,9,18}. HCF = 6."},
+    {q:'LCM of 4 and 6?',opts:['8','12','24','6'],a:'12',e:"Smallest number divisible by both 4 and 6. 4×3=12, 6×2=12. LCM=12."},
+    {q:'Which is a prime number?',opts:['9','15','17','21'],a:'17',e:"Prime = exactly two factors (1 and itself). 17 is prime. 9=3², 15=3×5, 21=3×7."},
+    {q:'Is 144 divisible by 12?',opts:['Yes','No','Only if 144>12','Indeterminate'],a:'Yes',e:"144÷12=12 exactly. 144 is perfectly divisible by 12."},
+    {q:'Sum of first 10 natural numbers?',opts:['45','50','55','60'],a:'55',e:"Formula: n(n+1)/2 = 10×11/2 = 55. Or add 1+2+...+10 = 55."},
+   ]},
+
+  {id:'apt-percent',skill:'Aptitude',concept:'Percentages & Profit/Loss',title:'Percentage Pro',desc:'Profit, loss, discount, and successive percentage changes.',diff:'Medium',xp:150,timed:false,color:'#fb923c',color2:'#fbbf24',
+   questions:[
+    {q:'Cost price ₹400, Selling price ₹500. Profit %?',opts:['20%','25%','15%','10%'],a:'25%',e:"Profit=SP-CP=100. Profit%=(Profit/CP)×100=(100/400)×100=25%."},
+    {q:'Price rises 20% then falls 20%. Net change?',opts:['0%','−4%','+4%','−2%'],a:'−4%',e:"100→×1.2=120→×0.8=96. Net=-4%. Successive % changes compound — they're NOT additive."},
+    {q:'Shirt costs ₹600 after 25% discount. Original price?',opts:['₹750','₹800','₹720','₹850'],a:'₹800',e:"75% of original=600 → original=600÷0.75=₹800."},
+    {q:'What is 15% of 240?',opts:['34','36','38','40'],a:'36',e:"15÷100×240=0.15×240=36."},
+    {q:'Salary increases from ₹10,000 to ₹12,500. % increase?',opts:['20%','25%','15%','22%'],a:'25%',e:"Increase=2500. %=(2500/10000)×100=25%."},
+   ]},
+
+  {id:'apt-tsd',skill:'Aptitude',concept:'Time, Speed & Distance',title:'TSD Sprint',desc:'Speed, distance, time, relative speed. Think fast!',diff:'Hard',xp:250,timed:true,timeLimit:45,color:'#f472b6',color2:'#a78bfa',
+   questions:[
+    {q:'Car travels 120 km in 2 hours. Speed?',opts:['60 km/h','55 km/h','65 km/h','70 km/h'],a:'60 km/h',e:"Speed=Distance÷Time=120÷2=60 km/h."},
+    {q:'Train A at 60 km/h, Train B at 90 km/h approaching each other. Relative speed?',opts:['30 km/h','150 km/h','90 km/h','60 km/h'],a:'150 km/h',e:"When approaching: relative speed=sum of speeds=60+90=150 km/h."},
+    {q:'Distance=200 km, Speed=80 km/h. Time=?',opts:['2h','2h 30m','2h 45m','3h'],a:'2h 30m',e:"Time=200÷80=2.5 hours=2 hours 30 minutes."},
+    {q:'A runs 5 km in 25 min. B runs 5 km in 20 min. B beats A by?',opts:['3 min','4 min','5 min','6 min'],a:'5 min',e:"A takes 25 min, B takes 20 min. B finishes 25−20=5 minutes earlier."},
+    {q:'Convert 90 km/h to m/s:',opts:['20 m/s','25 m/s','30 m/s','15 m/s'],a:'25 m/s',e:"km/h → m/s: multiply by 5/18. 90×5/18=25 m/s."},
+   ]},
+
+  // ── DATA STRUCTURES ─────────────────────────────────────────
+  {id:'dsa-arrays',skill:'Data Structures',concept:'Arrays & Complexity',title:'Array Attack',desc:'Array operations, indexing, search, and Big-O.',diff:'Easy',xp:100,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'Time complexity of array access by index?',opts:['O(n)','O(log n)','O(1)','O(n²)'],a:'O(1)',e:"Arrays store elements in contiguous memory, so index-based access is always constant time O(1)."},
+    {q:'Time complexity of linear search on unsorted array?',opts:['O(1)','O(log n)','O(n)','O(n log n)'],a:'O(n)',e:"Without sorting you may need to check every element — worst case is O(n)."},
+    {q:'Inserting at the beginning of an array is:',opts:['O(1)','O(log n)','O(n)','O(n²)'],a:'O(n)',e:"All existing elements must shift right by one position to make room — O(n)."},
+    {q:'Binary search requires the array to be:',opts:['Unsorted','Sorted','Full','Non-empty'],a:'Sorted',e:"Binary search works by halving the search space each step, which only works on sorted data."},
+    {q:'Time complexity of binary search?',opts:['O(n)','O(n²)','O(log n)','O(1)'],a:'O(log n)',e:"Each step halves the remaining search space. With n elements, it takes at most log₂(n) steps."},
+   ]},
+
+  {id:'dsa-stacks',skill:'Data Structures',concept:'Stacks & Queues',title:'Stack vs Queue',desc:'LIFO vs FIFO, operations, and real-world use cases.',diff:'Easy',xp:100,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'A Stack follows:',opts:['FIFO','LIFO','Random order','Sorted order'],a:'LIFO',e:"Stack = Last In First Out. Like a stack of plates — last placed is first removed."},
+    {q:'A Queue follows:',opts:['FIFO','LIFO','Both','Random order'],a:'FIFO',e:"Queue = First In First Out. Like a real queue — first in line is first served."},
+    {q:'Stack operation to add an element:',opts:['enqueue','dequeue','push','pop'],a:'push',e:"push() adds an element on top of the stack. pop() removes from the top."},
+    {q:'Which data structure is used in BFS traversal?',opts:['Stack','Queue','Heap','Tree'],a:'Queue',e:"BFS uses a Queue to process nodes level by level (FIFO ensures this)."},
+    {q:'Which data structure is used in DFS traversal?',opts:['Queue','Stack','LinkedList','Array'],a:'Stack',e:"DFS uses a Stack (or recursion, which uses the call stack implicitly) to explore depth-first."},
+   ]},
+
+  {id:'dsa-sorting',skill:'Data Structures',concept:'Sorting Algorithms',title:'Sort It Out',desc:'Bubble, merge, quick sort — complexities and trade-offs.',diff:'Medium',xp:150,timed:false,color:'#34d399',color2:'#63d2ff',
+   questions:[
+    {q:'Which sort guarantees O(n log n) in ALL cases?',opts:['Bubble Sort','Selection Sort','Merge Sort','Quick Sort'],a:'Merge Sort',e:"Merge Sort is O(n log n) best/average/worst. Quick Sort degrades to O(n²) in the worst case."},
+    {q:'Bubble Sort average complexity?',opts:['O(n)','O(n log n)','O(n²)','O(log n)'],a:'O(n²)',e:"Bubble Sort compares adjacent pairs in nested loops — O(n²) on average and worst case."},
+    {q:'Best sort for nearly-sorted data?',opts:['Quick Sort','Merge Sort','Heap Sort','Insertion Sort'],a:'Insertion Sort',e:"Insertion Sort runs in near O(n) on nearly-sorted data since very few swaps are needed."},
+    {q:'Quick Sort\'s worst case occurs when?',opts:['Array is sorted or reverse sorted','Array is random','Array has equal elements','Array is empty'],a:'Array is sorted or reverse sorted',e:"If the pivot is always the min/max (common on already-sorted data with naive pivot selection), Quick Sort degrades to O(n²)."},
+    {q:'Which sort is NOT comparison-based?',opts:['Merge Sort','Heap Sort','Counting Sort','Quick Sort'],a:'Counting Sort',e:"Counting Sort works by counting element occurrences — no comparisons needed. It runs in O(n+k)."},
+   ]},
+
+  {id:'dsa-speed',skill:'Data Structures',concept:'Mixed DSA',title:'DSA Speed Round',desc:'5 mixed DSA questions. 45 seconds. Think in Big-O! 🌲',diff:'Hard',xp:250,timed:true,timeLimit:45,color:'#f472b6',color2:'#a78bfa',
+   questions:[
+    {q:'Stack uses LIFO. Queue uses ___ ?',opts:['LIFO','FIFO','FIFO','FILO'],a:'FIFO',e:"Queue = First In First Out. Stack = Last In First Out."},
+    {q:'O(log n) is BETTER or WORSE than O(n)?',opts:['Worse','Better','Same','Depends'],a:'Better',e:"log n grows much slower than n. For n=1,000,000: log₂n ≈ 20 steps vs 1,000,000 for O(n)."},
+    {q:'A hash table\'s average lookup time?',opts:['O(n)','O(log n)','O(1)','O(n²)'],a:'O(1)',e:"Hash functions map keys to indices for near-constant O(1) average lookup. Collisions can degrade this."},
+    {q:'Height of a BALANCED binary search tree with n nodes?',opts:['O(n)','O(log n)','O(1)','O(n log n)'],a:'O(log n)',e:"A balanced BST halves the remaining nodes at each level, giving a height of O(log n)."},
+    {q:'Inserting at HEAD of a singly linked list?',opts:['O(n)','O(log n)','O(1)','O(n²)'],a:'O(1)',e:"Inserting at the head just changes one pointer (new node's next = old head) — O(1)."},
+   ]},
+];
+
+// ── BADGE DEFINITIONS ─────────────────────────────────────────
+// These are also read by profile.html from localStorage key 'sf_badges'
+const BADGE_DEFS = [
+  {id:'first_challenge',  icon:'🚀', name:'First Challenge',      check:()=> state.done.length>=1},
+  {id:'five_done',        icon:'⭐', name:'5 Challenges Done',    check:()=> state.done.length>=5},
+  {id:'ten_done',         icon:'🌟', name:'10 Challenges Done',   check:()=> state.done.length>=10},
+  {id:'perfect_score',    icon:'💎', name:'Perfect Score',        check:(s,t)=> s===t && t>0},
+  {id:'speed_demon',      icon:'⚡', name:'Speed Demon',          check:()=> state.done.some(id=>BANK.find(c=>c.id===id)?.timed)},
+  {id:'xp_500',           icon:'🔥', name:'500 XP Club',          check:()=> state.xp>=500},
+  {id:'xp_1000',          icon:'💯', name:'1000 XP Legend',       check:()=> state.xp>=1000},
+  {id:'hard_hero',        icon:'💀', name:'Hard Mode Hero',       check:()=> state.done.some(id=>BANK.find(c=>c.id===id)?.diff==='Hard')},
+  {id:'multi_skill',      icon:'🌐', name:'Multi-Skill Learner',  check:()=>{ const s=new Set(state.done.map(id=>BANK.find(c=>c.id===id)?.skill).filter(Boolean));return s.size>=3;}},
+  {id:'streak_3',         icon:'🎯', name:'3-Win Streak',         check:()=> state.streak>=3},
+  {id:'all_python',       icon:'🐍', name:'Python Champion',      check:()=> BANK.filter(c=>c.skill==='Python').every(c=>state.done.includes(c.id))},
+  {id:'all_english',      icon:'🇬🇧', name:'English Master',       check:()=> BANK.filter(c=>c.skill==='English').every(c=>state.done.includes(c.id))},
+];
+
+// ── STATE ─────────────────────────────────────────────────────
+const SKEY = 'sf_challenges';
+let state = JSON.parse(localStorage.getItem(SKEY)||'{"done":[],"xp":0,"streak":0}');
+let activeCh=null, activeQs=[], submitted=false, timerIv=null, currentFilter='All';
+
+// ── PROFILE STATS LOAD ────────────────────────────────────────
+async function loadXP(){
+  try{
+    const r=await fetch('/api/profile',{headers:{'Authorization':'Bearer '+TOKEN}});
+    if(r.ok){const d=await r.json();document.getElementById('total-xp').textContent=d.stats.total_xp;document.getElementById('sidebar-level').textContent=`Level ${d.stats.level}`;}
+  }catch(e){}
+}
+loadXP();
+
+// ── HERO STATS ────────────────────────────────────────────────
+function updateStats(){
+  const earned=JSON.parse(localStorage.getItem('sf_badges')||'[]');
+  document.getElementById('h-done').textContent   = state.done.length;
+  document.getElementById('h-xp').textContent     = state.xp;
+  document.getElementById('h-streak').textContent = `🔥${state.streak}`;
+  document.getElementById('h-badges').textContent  = earned.length;
+}
+updateStats();
+
+// ── HELPERS ──────────────────────────────────────────────────
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function sIcon(s){return {'Python':'🐍','JavaScript':'⚡','SQL':'🗄️','English':'🇬🇧','Aptitude':'🧮','Data Structures':'🌲'}[s]||'📚';}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderAll(){
+  const daily   = BANK.filter(c=>!c.timed && c.diff==='Easy');
+  const concept  = BANK.filter(c=>!c.timed && c.diff==='Medium');
+  const speed   = BANK.filter(c=>c.timed);
+  renderGrid('daily-grid',   daily);
+  renderGrid('concept-grid', concept);
+  renderGrid('speed-grid',   speed);
+}
+
+function renderGrid(containerId, list){
+  const el=document.getElementById(containerId);
+  const filtered = currentFilter==='All' ? list : list.filter(c=>c.skill===currentFilter);
+  if(!filtered.length){el.innerHTML=`<div style="color:var(--muted);font-size:.85rem;padding:.5rem;grid-column:1/-1">No challenges for this filter. Try "All" or a different skill.</div>`;return;}
+  el.innerHTML=filtered.map(ch=>{
+    const done=state.done.includes(ch.id);
+    return `<div class="ch-card ${done?'done':''}" style="--ch-color:${ch.color};--ch-color2:${ch.color2}" onclick="openChallenge('${ch.id}')">
+      <div class="ch-top">
+        <div class="ch-icon">${sIcon(ch.skill)}</div>
+        <div class="ch-badges">
+          <span class="ch-tag tag-${ch.diff.toLowerCase()}">${ch.diff}</span>
+          ${ch.timed?'<span class="ch-tag tag-timed">⏱ Timed</span>':''}
+          ${ch.diff==='Easy'&&!ch.timed?'<span class="ch-tag tag-daily">Daily</span>':''}
+        </div>
+      </div>
+      <div class="ch-title">${ch.title}</div>
+      <div class="ch-concept">📌 ${ch.concept}</div>
+      <div class="ch-desc">${ch.desc}</div>
+      <div class="ch-footer">
+        <div class="ch-xp">⚡ +${ch.xp} XP</div>
+        <div class="ch-meta">${ch.questions.length}Q · ${ch.skill}</div>
+        <button class="ch-btn ${done?'redo':''}" onclick="event.stopPropagation();openChallenge('${ch.id}')">${done?'Redo 🔄':'Start →'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterChallenges(skill,btn){
+  document.querySelectorAll('.skill-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter=skill;
+  renderAll();
+}
+
+// ── OPEN CHALLENGE ────────────────────────────────────────────
+function openChallenge(id){
+  const ch=BANK.find(c=>c.id===id);
+  if(!ch) return;
+  activeCh=ch;
+  activeQs=ch.questions.map(q=>({...q,sOpts:shuffle(q.opts),_sel:undefined}));
+  submitted=false;
+
+  document.getElementById('modal-title').textContent=ch.title;
+  document.getElementById('modal-sub').textContent=`${sIcon(ch.skill)} ${ch.skill} · ${ch.concept} · ⚡${ch.xp} XP`;
+  document.getElementById('modal-prog').style.width='0%';
+
+  const tbox=document.getElementById('timer-box');
+  if(ch.timed){tbox.style.display='flex';startTimer(ch.timeLimit);}
+  else{tbox.style.display='none';clearInterval(timerIv);}
+
+  renderQuestions();
+  document.getElementById('ch-overlay').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('ch-overlay').classList.remove('show');
+  clearInterval(timerIv);
+}
+document.getElementById('ch-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+
+// ── TIMER ─────────────────────────────────────────────────────
+function startTimer(secs){
+  clearInterval(timerIv);
+  let t=secs;
+  document.getElementById('timer-val').textContent=t;
+  document.getElementById('timer-box').classList.remove('danger');
+  timerIv=setInterval(()=>{
+    t--;
+    document.getElementById('timer-val').textContent=t;
+    if(t<=10) document.getElementById('timer-box').classList.add('danger');
+    if(t<=0){clearInterval(timerIv);submitChallenge(true);}
+  },1000);
+}
+
+// ── RENDER QUESTIONS ──────────────────────────────────────────
+function renderQuestions(){
+  document.getElementById('modal-body').innerHTML=activeQs.map((q,i)=>`
+    <div class="q-block" id="qblock-${i}">
+      <div class="q-header">
+        <div class="q-num">QUESTION ${i+1} / ${activeQs.length}</div>
+        <div class="q-concept">${q.concept||activeCh.concept}</div>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="q-opts">
+        ${q.sOpts.map((opt,j)=>`
+          <label class="q-opt" id="qopt-${i}-${j}" onclick="selOpt(${i},${j})">
+            <input type="radio" name="q${i}" style="accent-color:var(--cyan);pointer-events:none;">
+            <span>${opt}</span>
+          </label>`).join('')}
+      </div>
+      <div class="q-exp" id="qexp-${i}">💡 ${q.e}</div>
+    </div>`).join('');
+
+  document.getElementById('modal-foot').innerHTML=`
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" id="submit-btn" onclick="submitChallenge(false)" disabled>Submit Answers</button>`;
+}
+
+// ── SELECT OPTION ─────────────────────────────────────────────
+function selOpt(qi,oi){
+  if(submitted) return;
+  activeQs[qi].sOpts.forEach((_,j)=>{
+    const e=document.getElementById(`qopt-${qi}-${j}`);
+    if(e){e.classList.remove('selected');e.querySelector('input').checked=false;}
+  });
+  const e=document.getElementById(`qopt-${qi}-${oi}`);
+  if(e){e.classList.add('selected');e.querySelector('input').checked=true;}
+  activeQs[qi]._sel=oi;
+
+  const answered=activeQs.filter(q=>q._sel!==undefined).length;
+  document.getElementById('modal-prog').style.width=`${answered/activeQs.length*100}%`;
+  const btn=document.getElementById('submit-btn');
+  if(btn) btn.disabled=!activeQs.every(q=>q._sel!==undefined);
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────
+function submitChallenge(timedOut=false){
+  if(submitted) return;
+  submitted=true;
+  clearInterval(timerIv);
+  document.getElementById('timer-box').classList.remove('danger');
+
+  let score=0;
+  activeQs.forEach((q,i)=>{
+    const sel=q._sel;
+    const selTxt=sel!==undefined?q.sOpts[sel]:null;
+    const correct=selTxt!==null && selTxt.trim()===q.a.trim();
+    if(correct) score++;
+    q.sOpts.forEach((opt,j)=>{
+      const el=document.getElementById(`qopt-${i}-${j}`);
+      if(!el) return;
+      el.style.cursor='default';
+      if(opt.trim()===q.a.trim()) el.classList.add('correct');
+      else if(j===sel&&!correct) el.classList.add('wrong');
+    });
+    document.getElementById(`qexp-${i}`)?.classList.add('show');
+  });
+
+  const total=activeQs.length;
+  const pct=Math.round(score/total*100);
+  const passed=pct>=60;
+  const xpEarned=passed?activeCh.xp:Math.round(activeCh.xp*(score/total)*0.3);
+
+  // Update state
+  if(!state.done.includes(activeCh.id)) state.done.push(activeCh.id);
+  state.xp+=xpEarned;
+  state.streak=passed?(state.streak+1):0;
+  localStorage.setItem(SKEY,JSON.stringify(state));
+  updateStats();
+
+  // Check badges
+  const newBadges=checkBadges(score,total,pct);
+
+  // Result HTML prepended to questions
+  const body=document.getElementById('modal-body');
+  const resultHTML=`
+    <div class="result-box">
+      <span class="result-emoji">${pct===100?'🌟':passed?'🎉':'📚'}</span>
+      <div class="result-score ${passed?'pass':'fail'}">${score}/${total}</div>
+      <div class="result-msg">${pct===100?'Perfect Score!':passed?'Challenge Passed!':'Keep Studying!'}</div>
+      <div class="result-sub">${pct}% · ${timedOut?'Time ran out! ':''}${passed?'Excellent concept mastery!':'Score 60%+ to pass.'}</div>
+      <div class="result-xp">⚡ +${xpEarned} XP earned</div>
+      ${newBadges.length?`<div class="badges-earned">${newBadges.map(b=>`<div class="badge-pop">${b.icon} ${b.name} Unlocked!</div>`).join('')}</div>`:''}
+      <div class="result-breakdown">
+        <div class="rb-row"><span class="rb-label">Skill</span><span class="rb-val">${activeCh.skill}</span></div>
+        <div class="rb-row"><span class="rb-label">Concept</span><span class="rb-val">${activeCh.concept}</span></div>
+        <div class="rb-row"><span class="rb-label">Difficulty</span><span class="rb-val">${activeCh.diff}</span></div>
+        <div class="rb-row"><span class="rb-label">Score</span><span class="rb-val">${score}/${total} (${pct}%)</span></div>
+        <div class="rb-row"><span class="rb-label">XP Earned</span><span class="rb-val" style="color:var(--amber)">+${xpEarned}</span></div>
+        <div class="rb-row"><span class="rb-label">Win Streak</span><span class="rb-val" style="color:var(--orange)">🔥 ${state.streak}</span></div>
+      </div>
+    </div>
+    <hr style="border-color:var(--border);margin:1rem 0;">
+    <p style="font-size:.78rem;color:var(--muted);margin-bottom:.8rem;font-family:var(--font-mono);">📋 REVIEW YOUR ANSWERS</p>
+  `+body.innerHTML;
+
+  body.innerHTML=resultHTML;
+  body.scrollTop=0;
+  document.getElementById('modal-prog').style.width='100%';
+  document.getElementById('modal-foot').innerHTML=`
+    <button class="btn btn-ghost" onclick="openChallenge('${activeCh.id}')">🔄 Retry</button>
+    <button class="btn btn-primary" onclick="closeModal();renderAll()">Done ✓</button>`;
+
+  if(xpEarned>0) showToast(`⚡ +${xpEarned} XP! ${passed?'Great job!':'Keep practicing!'}`, 'xp');
+  if(newBadges.length) setTimeout(()=>showToast(`🏆 Badge Unlocked: ${newBadges[0].name}!`,'badge'),1500);
+  renderAll();
+}
+
+// ── BADGE CHECK ───────────────────────────────────────────────
+function checkBadges(score,total,pct){
+  const earned=JSON.parse(localStorage.getItem('sf_badges')||'[]');
+  const newlyEarned=[];
+  BADGE_DEFS.forEach(b=>{
+    if(!earned.includes(b.id) && b.check(score,total,pct)){
+      earned.push(b.id);
+      newlyEarned.push(b);
+    }
+  });
+  localStorage.setItem('sf_badges',JSON.stringify(earned));
+  return newlyEarned;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast ${type} show`;
+  setTimeout(()=>t.className='toast',3500);
+}
+
+function logout(){localStorage.clear();window.location.href='/';}
+
+renderAll();
+</script>
+</body>
+</html>

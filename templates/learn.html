@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn — SkillForge</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#030712;--surface:#0d1117;--surface2:#161b22;--surface3:#1f2937;
+    --border:rgba(99,210,255,0.12);--border2:rgba(99,210,255,0.28);
+    --cyan:#63d2ff;--cyan2:#00f5c8;--amber:#fbbf24;--pink:#f472b6;--purple:#a78bfa;
+    --text:#e2e8f0;--muted:#64748b;--success:#34d399;--danger:#f87171;
+    --font-head:'Exo 2',sans-serif;--font-mono:'Space Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-head);height:100vh;display:flex;overflow:hidden;}
+
+  /* SIDEBAR */
+  .sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+  .sidebar-logo{padding:1.4rem 1.2rem;border-bottom:1px solid var(--border);font-size:1.2rem;font-weight:900;letter-spacing:2px;color:var(--cyan);cursor:pointer;}
+  .sidebar-logo span{color:var(--cyan2);}
+  .sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto;}
+  .nav-label{padding:.3rem 1.2rem;font-size:.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;font-family:var(--font-mono);}
+  .nav-item{display:flex;align-items:center;gap:.6rem;padding:.65rem 1.2rem;cursor:pointer;transition:.2s;color:var(--muted);font-weight:600;font-size:.85rem;text-decoration:none;border-left:3px solid transparent;}
+  .nav-item:hover,.nav-item.active{color:var(--cyan);background:rgba(99,210,255,.06);border-left-color:var(--cyan);}
+  .skill-badge{font-size:.6rem;padding:.15rem .4rem;border-radius:4px;background:rgba(99,210,255,.15);color:var(--cyan);font-family:var(--font-mono);margin-left:auto;}
+  .sidebar-footer{padding:1rem 1.2rem;border-top:1px solid var(--border);}
+  .back-btn{display:flex;align-items:center;gap:.5rem;color:var(--muted);font-size:.85rem;cursor:pointer;padding:.5rem;border-radius:6px;transition:.2s;background:none;border:none;width:100%;}
+  .back-btn:hover{color:var(--cyan);background:rgba(99,210,255,.06);}
+
+  /* CURRICULUM PANEL */
+  .curriculum-panel{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+  .panel-head{padding:1.2rem;border-bottom:1px solid var(--border);}
+  .panel-head h3{font-size:.95rem;font-weight:800;color:var(--cyan);}
+  .panel-head p{font-size:.75rem;color:var(--muted);margin-top:.2rem;}
+  .panel-progress{padding:.8rem 1.2rem;border-bottom:1px solid var(--border);}
+  .prog-row{display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:.4rem;}
+  .prog-bar{height:6px;background:var(--surface3);border-radius:100px;overflow:hidden;}
+  .prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--cyan2));border-radius:100px;transition:width .6s;}
+  .curriculum-list{flex:1;overflow-y:auto;padding:.8rem;}
+  .week-group{margin-bottom:1.2rem;}
+  .week-label{font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:.5rem;padding:.2rem 0;display:flex;align-items:center;justify-content:space-between;}
+  .curr-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.8rem;margin-bottom:.5rem;cursor:pointer;transition:.2s;position:relative;}
+  .curr-item:hover{border-color:var(--border2);}
+  .curr-item.completed{border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.05);}
+  .curr-item.active-item{border-color:var(--cyan);background:rgba(99,210,255,.06);}
+  .curr-top{display:flex;align-items:flex-start;gap:.5rem;}
+  .curr-check{width:18px;height:18px;border-radius:50%;border:2px solid var(--muted);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;margin-top:.1rem;transition:.2s;}
+  .curr-item.completed .curr-check{background:var(--success);border-color:var(--success);color:#030712;}
+  .curr-item.active-item .curr-check{border-color:var(--cyan);}
+  .curr-info{flex:1;}
+  .curr-title{font-size:.82rem;font-weight:700;margin-bottom:.2rem;}
+  .curr-meta{display:flex;gap:.5rem;}
+  .curr-type{font-size:.6rem;padding:.1rem .4rem;border-radius:4px;font-family:var(--font-mono);}
+  .type-lesson{background:rgba(99,210,255,.15);color:var(--cyan);}
+  .type-practice{background:rgba(167,139,250,.15);color:var(--purple);}
+  .type-project{background:rgba(251,191,36,.15);color:var(--amber);}
+  .type-quiz{background:rgba(244,114,182,.15);color:var(--pink);}
+  .curr-mins{font-size:.6rem;color:var(--muted);font-family:var(--font-mono);}
+
+  /* WEEK TEST BUTTON */
+  .week-test-btn{display:flex;align-items:center;gap:.4rem;margin-top:.5rem;padding:.4rem .7rem;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);border-radius:6px;color:var(--purple);font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s;width:100%;justify-content:center;}
+  .week-test-btn:hover{background:rgba(167,139,250,.22);border-color:var(--purple);}
+
+  /* CHAT AREA */
+  .chat-area{flex:1;display:flex;flex-direction:column;min-width:0;}
+
+  /* CHAT HEADER */
+  .chat-header{padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem;background:var(--surface);flex-shrink:0;}
+  .skill-avatar{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .chat-header-info{flex:1;}
+  .chat-header-info h2{font-size:1rem;font-weight:800;}
+  .chat-header-info p{font-size:.75rem;color:var(--muted);}
+  .chat-header-actions{display:flex;gap:.6rem;}
+  .icon-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.5rem .7rem;cursor:pointer;font-size:.9rem;transition:.2s;color:var(--text);}
+  .icon-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .level-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.4rem .8rem;color:var(--text);font-family:var(--font-head);font-size:.8rem;cursor:pointer;outline:none;}
+  .level-select:focus{border-color:var(--cyan);}
+
+  /* MESSAGES */
+  .messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;scroll-behavior:smooth;}
+  .messages::-webkit-scrollbar{width:4px;}
+  .messages::-webkit-scrollbar-track{background:transparent;}
+  .messages::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px;}
+
+  .msg{display:flex;gap:.8rem;max-width:85%;animation:fadeUp .3s ease;}
+  .msg.user{flex-direction:row-reverse;align-self:flex-end;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  .msg-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;margin-top:.2rem;}
+  .msg.user .msg-avatar{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#030712;font-weight:800;font-size:.8rem;}
+  .msg.assistant .msg-avatar{background:linear-gradient(135deg,var(--surface3),var(--surface2));border:1px solid var(--border2);}
+
+  .msg-bubble{padding:.85rem 1.1rem;border-radius:12px;font-size:.9rem;line-height:1.65;}
+  .msg.user .msg-bubble{background:linear-gradient(135deg,rgba(99,210,255,.15),rgba(99,210,255,.08));border:1px solid rgba(99,210,255,.2);}
+  .msg.assistant .msg-bubble{background:var(--surface2);border:1px solid var(--border);}
+  .msg-bubble code{background:var(--surface3);padding:.1rem .35rem;border-radius:4px;font-family:var(--font-mono);font-size:.82rem;color:var(--cyan2);}
+  .msg-bubble pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:.5rem 0;overflow-x:auto;}
+  .msg-bubble pre code{background:none;padding:0;color:var(--cyan2);font-size:.82rem;}
+  .msg-time{font-size:.65rem;color:var(--muted);margin-top:.3rem;font-family:var(--font-mono);}
+
+  /* TYPING */
+  .typing-indicator{display:flex;gap:.3rem;align-items:center;padding:.7rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;width:fit-content;}
+  .typing-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 1.2s ease infinite;}
+  .typing-dot:nth-child(2){animation-delay:.2s;}
+  .typing-dot:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+  /* INPUT */
+  .input-area{padding:1rem 1.5rem;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+  .input-row{display:flex;gap:.7rem;align-items:flex-end;}
+  .input-box{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:.8rem 1rem;color:var(--text);font-family:var(--font-head);font-size:.92rem;outline:none;resize:none;max-height:120px;line-height:1.5;transition:.2s;}
+  .input-box:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(99,210,255,.08);}
+  .send-btn{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#030712;border:none;border-radius:10px;padding:.8rem 1.1rem;cursor:pointer;font-size:1.1rem;transition:.2s;flex-shrink:0;font-weight:700;}
+  .send-btn:hover{transform:scale(1.05);box-shadow:0 0 15px rgba(99,210,255,.3);}
+  .send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .input-hints{display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;}
+  .hint-chip{padding:.3rem .7rem;background:var(--surface3);border:1px solid var(--border);border-radius:100px;font-size:.72rem;color:var(--muted);cursor:pointer;transition:.2s;}
+  .hint-chip:hover{color:var(--cyan);border-color:var(--cyan);}
+
+  /* YOUTUBE PANEL */
+  .yt-panel{position:fixed;right:0;top:0;width:340px;height:100vh;background:var(--surface);border-left:1px solid var(--border);z-index:80;transform:translateX(100%);transition:.3s;display:flex;flex-direction:column;}
+  .yt-panel.open{transform:translateX(0);}
+  .yt-head{padding:1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .yt-head h3{font-size:1rem;font-weight:800;color:var(--danger);}
+  .yt-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;}
+  .yt-search{padding:.8rem 1.2rem;border-bottom:1px solid var(--border);}
+  .yt-search input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.6rem .9rem;color:var(--text);font-family:var(--font-head);font-size:.85rem;outline:none;}
+  .yt-search input:focus{border-color:var(--danger);}
+  .yt-results{flex:1;overflow-y:auto;padding:.8rem;}
+  .yt-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:.8rem;overflow:hidden;cursor:pointer;transition:.2s;text-decoration:none;}
+  .yt-card:hover{border-color:rgba(248,113,113,.4);}
+  .yt-thumb{width:100%;aspect-ratio:16/9;object-fit:cover;}
+  .yt-info{padding:.7rem .8rem;}
+  .yt-title{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:.2rem;line-height:1.3;}
+  .yt-channel{font-size:.7rem;color:var(--muted);font-family:var(--font-mono);}
+  .no-results{color:var(--muted);font-size:.85rem;text-align:center;padding:2rem;}
+
+  /* WELCOME MSG */
+  .welcome-msg{max-width:600px;margin:2rem auto;text-align:center;}
+  .welcome-msg h2{font-size:1.4rem;font-weight:800;margin-bottom:.5rem;}
+  .welcome-msg p{color:var(--muted);font-size:.9rem;line-height:1.6;margin-bottom:1.5rem;}
+  .starter-chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;}
+  .starter-chip{padding:.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:100px;font-size:.82rem;cursor:pointer;transition:.2s;color:var(--text);}
+  .starter-chip:hover{border-color:var(--cyan);color:var(--cyan);}
+
+  /* ===================== WEEKLY TEST MODAL ===================== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(3,7,18,.88);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;}
+  .modal-overlay.hidden{display:none;}
+  .test-modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+  .test-modal-head{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .test-modal-head h3{font-size:1.05rem;font-weight:800;color:var(--cyan);}
+  .test-modal-head .sub{font-size:.75rem;color:var(--muted);margin-top:.15rem;}
+  .test-modal-body{flex:1;overflow-y:auto;padding:1.5rem;}
+  .test-modal-body::-webkit-scrollbar{width:4px;}
+  .test-modal-body::-webkit-scrollbar-track{background:transparent;}
+  .test-modal-body::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:4px;}
+  .test-modal-foot{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;
+      gap:.7rem;justify-content:flex-end;flex-shrink:0;}
+
+  .test-loading{text-align:center;padding:3rem;color:var(--muted);}
+  .test-loading .spin{font-size:2.2rem;animation:spin 1s linear infinite;display:inline-block;margin-bottom:.8rem;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .q-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1rem;}
+  .q-num{font-size:.65rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:2px;text-transform:uppercase;margin-bottom:.4rem;}
+  .q-text{font-size:.92rem;font-weight:700;margin-bottom:.9rem;line-height:1.5;}
+  .q-opts{display:flex;flex-direction:column;gap:.45rem;}
+  .q-opt{display:flex;align-items:center;gap:.6rem;padding:.65rem .9rem;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:.2s;font-size:.85rem;}
+  .q-opt:hover{border-color:var(--cyan);background:rgba(99,210,255,.06);}
+  .q-opt.selected{border-color:var(--cyan);background:rgba(99,210,255,.1);color:var(--cyan);}
+  .q-opt.correct{border-color:var(--success)!important;background:rgba(52,211,153,.1)!important;color:var(--success)!important;}
+  .q-opt.wrong{border-color:var(--danger)!important;background:rgba(248,113,113,.08)!important;color:var(--danger)!important;}
+  .q-opt input{accent-color:var(--cyan);flex-shrink:0;pointer-events:none;}
+  .q-exp{margin-top:.7rem;padding:.6rem .8rem;background:var(--surface3);border-radius:6px;font-size:.78rem;color:var(--muted);line-height:1.5;display:none;}
+  .q-exp.show{display:block;}
+
+  .result-banner{text-align:center;padding:1.5rem;border-radius:12px;margin-bottom:1rem;}
+  .result-banner.pass{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);}
+  .result-banner.fail{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);}
+  .result-banner .big{font-size:2.5rem;font-weight:900;}
+  .result-banner .msg{font-size:.9rem;color:var(--muted);margin-top:.3rem;}
+  .result-banner .xp{font-size:.8rem;color:var(--amber);margin-top:.4rem;font-family:var(--font-mono);}
+
+  .btn{padding:.6rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;border:none;transition:.2s;font-family:var(--font-head);}
+  .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan2));color:#030712;}
+  .btn-primary:hover{transform:scale(1.03);}
+  .btn-purple{background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;}
+  .btn-purple:hover{transform:scale(1.03);}
+  .btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+  .btn-ghost:hover{border-color:var(--cyan);color:var(--cyan);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+  @media(max-width:900px){
+    .curriculum-panel{display:none;}
+    .sidebar{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo" onclick="window.location.href='/dashboard'">SKILL<span>FORGE</span></div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Navigation</div>
+    <a class="nav-item" href="/dashboard">⚡ Dashboard</a>
+    <a class="nav-item" href="/profile">👤 Profile</a>
+    <div class="nav-label" style="margin-top:.8rem;">Current Skill</div>
+    <div class="nav-item active" id="current-skill-nav">📚 Loading...</div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="back-btn" onclick="window.location.href='/dashboard'">← Back to Dashboard</button>
+  </div>
+</aside>
+
+<!-- CURRICULUM PANEL -->
+<div class="curriculum-panel">
+  <div class="panel-head">
+    <h3>📋 Study Plan</h3>
+    <p id="curr-skill-name">Loading curriculum...</p>
+  </div>
+  <div class="panel-progress">
+    <div class="prog-row"><span style="font-size:.75rem;color:var(--muted)">Progress</span><span style="font-size:.75rem;color:var(--cyan);font-family:var(--font-mono)" id="prog-pct">0%</span></div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="curriculum-list" id="curr-list">
+    <div style="color:var(--muted);font-size:.82rem;padding:1rem;text-align:center;">Loading plan...</div>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-area">
+  <div class="chat-header">
+    <div class="skill-avatar" id="skill-icon">📚</div>
+    <div class="chat-header-info">
+      <h2 id="skill-title">Loading...</h2>
+      <p id="skill-subtitle">AI Tutor is ready</p>
+    </div>
+    <div class="chat-header-actions">
+      <select class="level-select" id="level-select">
+        <option value="beginner">🌱 Beginner</option>
+        <option value="intermediate">🔥 Intermediate</option>
+        <option value="advanced">⚡ Advanced</option>
+      </select>
+      <button class="icon-btn" onclick="toggleYT()" title="YouTube Resources">▶️ YouTube</button>
+      <button class="icon-btn" onclick="clearChat()" title="New Chat">🔄</button>
+    </div>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="welcome-msg" id="welcome-msg">
+      <h2>👋 Ready to learn <span id="welcome-skill" style="color:var(--cyan)">this skill</span>?</h2>
+      <p>Your AI teacher is here! Ask any question, request an explanation, or try one of these starters:</p>
+      <div class="starter-chips" id="starter-chips"></div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="input-box" id="msg-input" rows="1" placeholder="Ask your AI teacher anything..."></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+    <div class="input-hints">
+      <div class="hint-chip" onclick="useHint('Explain this simply with an example')">💡 Explain simply</div>
+      <div class="hint-chip" onclick="useHint('Give me a practice exercise')">✏️ Practice</div>
+      <div class="hint-chip" onclick="useHint('I still don\'t understand, can you try another way?')">🔄 Try again</div>
+      <div class="hint-chip" onclick="searchYouTube()">▶️ Find YouTube tutorial</div>
+    </div>
+  </div>
+</div>
+
+<!-- YOUTUBE PANEL -->
+<div class="yt-panel" id="yt-panel">
+  <div class="yt-head">
+    <h3>▶️ YouTube Resources</h3>
+    <button class="yt-close" onclick="toggleYT()">✕</button>
+  </div>
+  <div class="yt-search">
+    <input type="text" id="yt-input" placeholder="Search for tutorials..." onkeydown="if(event.key==='Enter')searchYouTube()">
+  </div>
+  <div class="yt-results" id="yt-results">
+    <div class="no-results">Click "Find YouTube tutorial" or search above to find free learning videos 🎬</div>
+  </div>
+</div>
+
+<!-- WEEKLY TEST MODAL -->
+<div class="modal-overlay hidden" id="test-overlay">
+  <div class="test-modal">
+    <div class="test-modal-head">
+      <div>
+        <h3 id="test-title">📝 Week 1 Test</h3>
+        <div class="sub" id="test-subtitle">Test your knowledge</div>
+      </div>
+      <button class="icon-btn" onclick="closeTest()">✕</button>
+    </div>
+    <div class="test-modal-body" id="test-body">
+      <div class="test-loading">
+        <div class="spin">⚙️</div>
+        <p>Generating your quiz...</p>
+      </div>
+    </div>
+    <div class="test-modal-foot" id="test-foot">
+      <button class="btn btn-ghost" onclick="closeTest()">Cancel</button>
+      <button class="btn btn-primary" id="test-submit-btn" onclick="submitTest()" disabled>Submit Answers</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOKEN = localStorage.getItem('sf_token');
+const NAME = localStorage.getItem('sf_name') || 'U';
+if (!TOKEN) window.location.href = '/';
+
+const skillName = decodeURIComponent(window.location.pathname.split('/learn/')[1] || 'General');
+let sessionId = null;
+let curriculumData = [];
+let completedIds = new Set();
+
+// ICONS
+const ICONS = {
+  'Python':'🐍','JavaScript':'⚡','SQL':'🗄️','English':'🇬🇧','Spanish':'🇪🇸',
+  'French':'🇫🇷','Japanese':'🇯🇵','Aptitude':'🧮','Public Speaking':'🎤',
+  'Leadership':'👑','Time Management':'⏰','Critical Thinking':'🧠',
+  'Data Structures':'🌲','Verbal Reasoning':'📖'
+};
+const icon = ICONS[skillName] || '📚';
+
+// STARTERS
+const STARTERS = {
+  default:['What should I learn first?','Give me a beginner overview','Teach me the basics','What are the key concepts?'],
+  Python:['What is a variable in Python?','Teach me about loops','How do functions work?','What is a list vs tuple?'],
+  JavaScript:['Explain callbacks and promises','What is the DOM?','How does async/await work?','Explain closures'],
+  English:['Fix my grammar: "I goed to store"','Explain present perfect tense','Give me 10 new vocabulary words','How to write a good email?'],
+  Aptitude:['Explain simple interest formula','Teach me probability basics','Give me a number series puzzle','Explain ratio and proportion'],
+};
+
+document.getElementById('skill-title').textContent = skillName;
+document.getElementById('skill-subtitle').textContent = `${icon} AI Tutor — ${skillName}`;
+document.getElementById('skill-icon').textContent = icon;
+document.getElementById('welcome-skill').textContent = skillName;
+document.getElementById('current-skill-nav').innerHTML = `${icon} ${skillName}`;
+document.getElementById('curr-skill-name').textContent = skillName;
+document.title = `Learn ${skillName} — SkillForge`;
+
+const starters = STARTERS[skillName] || STARTERS.default;
+document.getElementById('starter-chips').innerHTML = starters.map(s =>
+  `<div class="starter-chip" onclick="sendStarter('${s.replace(/'/g,"\\'")}')">${s}</div>`
+).join('');
+
+// ── QUESTION POOL ───────────────────────────────────────────
+const QPOOL = {
+  Python:[
+    {q:"Which keyword defines a function in Python?",o:["function","def","func","define"],a:"def",e:"'def' is used to define a user-defined function in Python."},
+    {q:"What is the output of print(type([]))?",o:["<class 'list'>","<class 'array'>","<type 'list'>","list"],a:"<class 'list'>",e:"An empty list has type <class 'list'>."},
+    {q:"Which is NOT a valid variable name?",o:["my_var","_val","2name","total_count"],a:"2name",e:"Variable names cannot start with a digit."},
+    {q:"What does len('hello') return?",o:["4","5","6","Error"],a:"5",e:"len() returns the number of characters in a string."},
+    {q:"Which data structure uses key-value pairs?",o:["list","tuple","dict","set"],a:"dict",e:"A dictionary (dict) stores data as key-value pairs."},
+    {q:"What is the result of 10 // 3?",o:["3.33","3","4","3.0"],a:"3",e:"// is floor division, discarding the fractional part."},
+    {q:"Which method adds an element to the end of a list?",o:["insert()","append()","push()","add()"],a:"append()",e:"list.append(item) adds an item to the end of the list."},
+    {q:"What is a Python tuple?",o:["Mutable ordered collection","Immutable ordered collection","Unordered key-value store","A type of string"],a:"Immutable ordered collection",e:"Tuples are like lists but immutable — they cannot be modified after creation."},
+    {q:"How do you start a single-line comment in Python?",o:["//","#","/*","--"],a:"#",e:"The '#' symbol starts a single-line comment in Python."},
+    {q:"What keyword imports a module?",o:["using","import","require","include"],a:"import",e:"'import module_name' brings a module's functions into your script."},
+  ],
+  JavaScript:[
+    {q:"Which keyword declares a block-scoped variable?",o:["var","let","const","both let and const"],a:"both let and const",e:"Both 'let' and 'const' are block-scoped. 'var' is function-scoped."},
+    {q:"What is the output of typeof null?",o:["null","undefined","object","NaN"],a:"object",e:"typeof null returns 'object' — a well-known JavaScript quirk."},
+    {q:"Which method converts a JSON string to an object?",o:["JSON.stringify()","JSON.parse()","JSON.convert()","JSON.toObject()"],a:"JSON.parse()",e:"JSON.parse() parses a JSON string and returns a JavaScript object."},
+    {q:"What does === check?",o:["Value only","Type only","Value and type","Reference"],a:"Value and type",e:"=== checks both value and type (strict equality)."},
+    {q:"Which array method returns a new transformed array?",o:["forEach()","push()","map()","pop()"],a:"map()",e:"map() returns a new array with each element transformed by the callback."},
+    {q:"What is a Promise in JavaScript?",o:["A data type","An object representing eventual completion of an async operation","A loop construct","A CSS property"],a:"An object representing eventual completion of an async operation",e:"A Promise represents a value that may be available now, later, or never."},
+    {q:"Which symbol marks an arrow function?",o:["*","->","=>","&"],a:"=>",e:"Arrow functions use => syntax: const fn = () => expression."},
+    {q:"How do you declare a constant in JS?",o:["var","let","const","constant"],a:"const",e:"const declares a read-only reference to a value."},
+    {q:"What is the DOM?",o:["A database","Document Object Model — a representation of the webpage","A programming language","A browser feature"],a:"Document Object Model — a representation of the webpage",e:"DOM is a tree-like structure that browsers build from HTML."},
+    {q:"Which method adds an event listener?",o:["addEvent()","onclick()","addEventListener()","listen()"],a:"addEventListener()",e:"element.addEventListener(event, handler) attaches an event handler."},
+  ],
+  SQL:[
+    {q:"Which command retrieves data from a table?",o:["INSERT","SELECT","UPDATE","DELETE"],a:"SELECT",e:"SELECT is used to fetch data from one or more tables."},
+    {q:"What does the WHERE clause do?",o:["Sorts results","Filters results","Groups data","Joins tables"],a:"Filters results",e:"WHERE filters rows based on a condition."},
+    {q:"Which join returns all rows from the left table?",o:["RIGHT JOIN","LEFT JOIN","INNER JOIN","FULL JOIN"],a:"LEFT JOIN",e:"LEFT JOIN returns all rows from the left table and matched rows from the right."},
+    {q:"What is a PRIMARY KEY?",o:["Optional identifier","Unique identifier for each row","A column type","A backup key"],a:"Unique identifier for each row",e:"PRIMARY KEY uniquely identifies every row in a table."},
+    {q:"Which function counts rows?",o:["SUM()","COUNT()","AVG()","MAX()"],a:"COUNT()",e:"COUNT() returns the number of rows matching a condition."},
+    {q:"What does GROUP BY do?",o:["Filters duplicates","Aggregates data into groups","Sorts alphabetically","Deletes rows"],a:"Aggregates data into groups",e:"GROUP BY groups rows for aggregated calculations."},
+    {q:"Which clause sorts results?",o:["ORDER BY","SORT BY","GROUP BY","FILTER BY"],a:"ORDER BY",e:"ORDER BY sorts the result set ascending (ASC) or descending (DESC)."},
+    {q:"What is a FOREIGN KEY?",o:["A duplicate key","A key referencing another table","An index","A password field"],a:"A key referencing another table",e:"FOREIGN KEY creates a relationship between two tables."},
+    {q:"How do you insert a row into a table?",o:["INSERT INTO table VALUES(...)","ADD ROW","CREATE ROW","PUT INTO"],a:"INSERT INTO table VALUES(...)",e:"INSERT INTO inserts new rows into a table."},
+    {q:"What does UPDATE do?",o:["Adds new rows","Modifies existing rows","Deletes rows","Creates tables"],a:"Modifies existing rows",e:"UPDATE changes values in existing rows matching a WHERE clause."},
+  ],
+  Aptitude:[
+    {q:"If a train travels at 60 km/h, how far in 2.5 hours?",o:["120 km","150 km","140 km","130 km"],a:"150 km",e:"Distance = Speed × Time = 60 × 2.5 = 150 km."},
+    {q:"What is the average of 5, 10, 15, 20?",o:["10","12.5","15","17.5"],a:"12.5",e:"Sum = 50, Count = 4, Average = 50/4 = 12.5."},
+    {q:"Simple Interest on ₹1000 at 5% for 3 years?",o:["₹100","₹150","₹120","₹200"],a:"₹150",e:"SI = P×R×T/100 = 1000×5×3/100 = ₹150."},
+    {q:"What is 20% of 250?",o:["40","50","45","55"],a:"50",e:"20/100 × 250 = 50."},
+    {q:"Man is 30, son is 5. After how many years will he be double his son's age?",o:["15 years","20 years","25 years","10 years"],a:"20 years",e:"After 20 yrs: father 50, son 25 → 50 = 2×25."},
+    {q:"Ratio of 24 to 36 in simplest form?",o:["2:3","3:4","4:5","1:2"],a:"2:3",e:"HCF(24,36)=12 → 24/12 : 36/12 = 2:3."},
+    {q:"Probability of rolling a 3 on a fair six-sided die?",o:["1/6","1/3","1/2","1/4"],a:"1/6",e:"One favorable outcome out of six equally likely outcomes = 1/6."},
+    {q:"Compound interest on ₹2000 at 10% for 2 years?",o:["₹410","₹420","₹400","₹440"],a:"₹420",e:"A = P(1+R/100)^T = 2000×1.1×1.1 = 2420. CI = 2420-2000 = 420."},
+    {q:"Find the missing number: 2, 6, 12, 20, ?",o:["28","30","26","32"],a:"30",e:"Pattern: n²+n → 1→2, 2→6, 3→12, 4→20, 5→30."},
+    {q:"A shopkeeper sells at 20% profit. Cost price ₹500. Selling price?",o:["₹550","₹580","₹600","₹520"],a:"₹600",e:"SP = CP + 20% of CP = 500 + 100 = ₹600."},
+  ],
+  English:[
+    {q:"Choose the grammatically correct sentence:",o:["She don't like apples.","She doesn't like apples.","She not like apples.","She don't likes apples."],a:"She doesn't like apples.",e:"'Doesn't' is the correct contraction for 'does not'. Third person singular requires 'doesn't'."},
+    {q:"Which is the correct plural of 'child'?",o:["Childs","Children","Childes","Childrens"],a:"Children",e:"'Children' is the irregular plural of 'child'."},
+    {q:"Identify the adverb: 'She sings beautifully.'",o:["She","sings","beautifully","none"],a:"beautifully",e:"'Beautifully' modifies the verb 'sings' — it tells how she sings."},
+    {q:"Choose the antonym of 'brave':",o:["Cowardly","Fearful","Timid","All of these"],a:"All of these",e:"Cowardly, fearful, and timid are all antonyms of brave."},
+    {q:"Which sentence uses 'they're' correctly?",o:["Their going to the park.","They're going to the park.","There going to the park.","They're house is big."],a:"They're going to the park.",e:"'They're' = 'they are'. 'Their' is possessive, 'there' is location."},
+    {q:"What is a synonym for 'happy'?",o:["Sad","Joyful","Angry","Tired"],a:"Joyful",e:"Joyful is a synonym (similar meaning) of happy."},
+    {q:"Choose the correct past tense: 'Yesterday, I ___ to school.'",o:["go","gone","went","going"],a:"went",e:"'Went' is the past tense of 'go'."},
+    {q:"Which sentence is grammatically correct?",o:["Me and him went there.","He and I went there.","Him and me went there.","Me and I went there."],a:"He and I went there.",e:"Use subject pronouns ('he', 'I') when the pronoun is the subject."},
+    {q:"What figure of speech is 'The sun smiled'?",o:["Metaphor","Personification","Simile","Hyperbole"],a:"Personification",e:"Assigning human qualities to non-human things (sun smiling) is personification."},
+    {q:"'She insisted ___ her opinion.' Fill in the blank.",o:["in","on","at","by"],a:"on",e:"'Insist on' is the correct phrasal verb collocation."},
+  ],
+  'Data Structures':[
+    {q:"Which data structure uses the LIFO principle?",o:["Queue","Stack","Linked List","Tree"],a:"Stack",e:"Stack follows Last In First Out (LIFO) — last element pushed is first popped."},
+    {q:"What is the time complexity of array access by index?",o:["O(n)","O(1)","O(log n)","O(n²)"],a:"O(1)",e:"Array elements are stored contiguously, so direct index access is O(1)."},
+    {q:"Which traversal visits root first, then left, then right?",o:["Inorder","Preorder","Postorder","Level order"],a:"Preorder",e:"Preorder: Root → Left → Right."},
+    {q:"What is a doubly linked list?",o:["Nodes have only next pointer","Nodes have next and prev pointers","Nodes have no pointers","Circular only"],a:"Nodes have next and prev pointers",e:"Doubly linked list nodes contain both forward and backward references."},
+    {q:"Which sorting algorithm has O(n log n) in worst case?",o:["Quick Sort","Bubble Sort","Merge Sort","Insertion Sort"],a:"Merge Sort",e:"Merge Sort guarantees O(n log n) in best, average, and worst cases."},
+    {q:"What does a hash table use to find values quickly?",o:["Linear search","Binary search","Hash function","Sequential scan"],a:"Hash function",e:"Hash functions map keys to indices for O(1) average lookup."},
+    {q:"Which data structure is used in BFS traversal?",o:["Stack","Queue","Heap","Graph"],a:"Queue",e:"BFS uses a queue to process nodes level by level."},
+    {q:"What is the height of a balanced BST with n nodes?",o:["O(n)","O(log n)","O(1)","O(n log n)"],a:"O(log n)",e:"Balanced BST maintains O(log n) height enabling fast searches."},
+    {q:"Which operation is O(1) for a linked list at head?",o:["Search","Insertion","Deletion at head","Traversal"],a:"Deletion at head",e:"Deleting at head of a singly linked list is O(1) — just change the head pointer."},
+    {q:"What is a priority queue commonly implemented with?",o:["Array","Stack","Heap","Queue"],a:"Heap",e:"Heaps efficiently support insertion and extraction of min/max in O(log n)."},
+  ],
+  // ── Default pool for skills not listed above (Spanish, French, Leadership, etc.)
+  default:[
+    {q:"Learning a new skill requires which of the following?",o:["Practice","Luck","Natural talent only","Avoiding mistakes"],a:"Practice",e:"Consistent practice is the key driver of skill development."},
+    {q:"Which technique helps retain new information?",o:["Passive reading","Spaced repetition","Cramming once","Ignoring mistakes"],a:"Spaced repetition",e:"Spaced repetition involves reviewing material at increasing intervals for better retention."},
+    {q:"What does 'active recall' mean?",o:["Reading notes repeatedly","Testing yourself without looking at notes","Highlighting text","Watching videos"],a:"Testing yourself without looking at notes",e:"Active recall means forcing your brain to retrieve information, which strengthens memory."},
+    {q:"The Pomodoro technique involves working for?",o:["10 mins then break","25 mins then short break","60 mins then break","1 hour with no break"],a:"25 mins then short break",e:"Pomodoro: 25 min focused work + 5 min break, repeated in cycles."},
+    {q:"Which is a sign of deep understanding of a topic?",o:["Memorising definitions","Explaining it in simple words to someone else","Reading it 10 times","Copying notes"],a:"Explaining it in simple words to someone else",e:"The Feynman Technique: if you can explain it simply, you truly understand it."},
+    {q:"What is a growth mindset?",o:["Believing intelligence is fixed","Believing abilities can be developed through effort","Avoiding challenges","Preferring easy tasks"],a:"Believing abilities can be developed through effort",e:"Carol Dweck's research shows a growth mindset leads to better learning outcomes."},
+    {q:"Which is the best way to learn from a mistake?",o:["Ignore it","Blame others","Analyse what went wrong and adjust","Quit the subject"],a:"Analyse what went wrong and adjust",e:"Mistakes are feedback — analysing them is how improvement happens."},
+    {q:"What does SQ3R stand for in study methods?",o:["Survey, Question, Read, Recite, Review","Study, Quiz, Read, Repeat, Rest","Scan, Query, Redo, Record, Revise","None of these"],a:"Survey, Question, Read, Recite, Review",e:"SQ3R is a structured reading strategy that improves comprehension."},
+    {q:"How does teaching others improve your learning?",o:["It doesn't","It forces you to organise and articulate knowledge","It wastes time","Only if you're an expert"],a:"It forces you to organise and articulate knowledge",e:"Teaching exposes gaps in your knowledge and deepens understanding."},
+    {q:"What is interleaving in learning?",o:["Studying one topic repeatedly","Mixing different topics or types of problems during practice","Taking breaks","Using flashcards only"],a:"Mixing different topics or types of problems during practice",e:"Interleaving improves long-term retention compared to blocked practice."},
+  ],
+};
+
+// ── TEST STATE ──────────────────────────────────────────────
+let testQuestions = [];
+let testWeek = 1;
+let testSubmitted = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getQuestionsForWeek(week) {
+  const pool = QPOOL[skillName] || QPOOL.default || [];
+  if (!pool || pool.length === 0) return [];
+  // Always shuffle the full pool, then rotate start index per week
+  // so Week 1, 2, 3... each get a different (but reproducible) set
+  const count = 5;
+  if (pool.length <= count) return shuffle([...pool]);
+  // Create a week-offset copy, then shuffle, then take 5
+  const rotated = [...pool.slice((week - 1) % pool.length), ...pool.slice(0, (week - 1) % pool.length)];
+  return shuffle(rotated).slice(0, count);
+}
+
+function openTest(weekNum) {
+  testWeek = weekNum;
+  testSubmitted = false;
+  testQuestions = [];
+
+  document.getElementById('test-title').textContent = `📝 Week ${weekNum} Test — ${skillName}`;
+  document.getElementById('test-subtitle').textContent = 'Test your knowledge';
+  document.getElementById('test-body').innerHTML = `
+    <div class="test-loading">
+      <div class="spin">⚙️</div>
+      <p>Preparing your quiz...</p>
+    </div>`;
+  document.getElementById('test-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="closeTest()">Cancel</button>
+    <button class="btn btn-primary" id="test-submit-btn" onclick="submitTest()" disabled>Submit Answers</button>`;
+  document.getElementById('test-overlay').classList.remove('hidden');
+
+  setTimeout(() => {
+    const raw = getQuestionsForWeek(weekNum);
+    if (!raw.length) {
+      document.getElementById('test-body').innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted)">No questions available for this skill yet.<br>Keep chatting to unlock more! 🤖</div>`;
+      return;
+    }
+    testQuestions = raw.map(q => ({
+      question: q.q,
+      options: shuffle([...q.o]),   // shuffled display options
+      answer: q.a,                  // correct answer TEXT
+      explanation: q.e,
+      _selected: undefined,         // index into .options[]
+    }));
+    renderQuestions();
+  }, 600);
+}
+
+function closeTest() {
+  document.getElementById('test-overlay').classList.add('hidden');
+}
+
+document.getElementById('test-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeTest();
+});
+
+function renderQuestions() {
+  const body = document.getElementById('test-body');
+  body.innerHTML = testQuestions.map((q, i) => `
+    <div class="q-card" id="qcard-${i}">
+      <div class="q-num">Question ${i + 1} of ${testQuestions.length}</div>
+      <div class="q-text">${q.question}</div>
+      <div class="q-opts">
+        ${q.options.map((opt, j) => `
+          <label class="q-opt" id="qopt-${i}-${j}" onclick="selectOpt(${i}, ${j})">
+            <input type="radio" name="q${i}" value="${j}" style="accent-color:var(--cyan);flex-shrink:0;pointer-events:none;">
+            <span>${opt}</span>
+          </label>`).join('')}
+      </div>
+      <div class="q-exp" id="qexp-${i}">💡 ${q.explanation}</div>
+    </div>`).join('');
+  document.getElementById('test-submit-btn').disabled = true;
+}
+
+function selectOpt(qIdx, optIdx) {
+  if (testSubmitted) return;
+
+  testQuestions[qIdx].options.forEach((_, j) => {
+    const el = document.getElementById(`qopt-${qIdx}-${j}`);
+    if (el) {
+      el.classList.remove('selected', 'correct', 'wrong');
+      el.querySelector('input') && (el.querySelector('input').checked = false);
+    }
+  });
+
+  const el = document.getElementById(`qopt-${qIdx}-${optIdx}`);
+  if (el) {
+    el.classList.add('selected');
+    const radio = el.querySelector('input');
+    if (radio) radio.checked = true;
+  }
+  testQuestions[qIdx]._selected = optIdx;
+
+  const allAnswered = testQuestions.every(q => q._selected !== undefined);
+  document.getElementById('test-submit-btn').disabled = !allAnswered;
+}
+
+function submitTest() {
+  if (testSubmitted) return;
+  testSubmitted = true;
+  document.getElementById('test-submit-btn').disabled = true;
+  document.getElementById('test-submit-btn').textContent = 'Submitted ✓';
+
+  let score = 0;
+  testQuestions.forEach((q, i) => {
+    const selIdx = q._selected;
+    const selText = selIdx !== undefined ? q.options[selIdx] : null;
+    // Trim both sides to prevent whitespace bugs
+    const correct = selText !== null && selText.trim() === q.answer.trim();
+    if (correct) score++;
+
+    q.options.forEach((opt, j) => {
+      const el = document.getElementById(`qopt-${i}-${j}`);
+      if (!el) return;
+      el.style.cursor = 'default';
+      if (opt.trim() === q.answer.trim()) el.classList.add('correct');
+      else if (j === selIdx && !correct) el.classList.add('wrong');
+    });
+    document.getElementById(`qexp-${i}`)?.classList.add('show');
+  });
+
+  const pct = Math.round((score / testQuestions.length) * 100);
+  const passed = pct >= 60;
+  const xpEarned = passed ? Math.round(pct * 2) : Math.round(score * 5);
+
+  const body = document.getElementById('test-body');
+  const banner = document.createElement('div');
+  banner.className = `result-banner ${passed ? 'pass' : 'fail'}`;
+  banner.innerHTML = `
+    <div class="big" style="color:${passed ? 'var(--success)' : 'var(--danger)'}">${score}/${testQuestions.length}</div>
+    <div style="font-size:1.1rem;font-weight:700;margin:.3rem 0;">${passed ? '🎉 Passed!' : '📚 Keep studying!'}</div>
+    <div class="msg">${pct}% — ${passed ? 'Great job!' : 'You need 60% to pass.'}</div>
+    ${passed ? `<div class="xp">+${xpEarned} XP earned</div>` : `<div class="xp" style="color:var(--muted)">Complete to earn XP</div>`}`;
+  body.insertBefore(banner, body.firstChild);
+  body.scrollTop = 0;
+
+  document.getElementById('test-foot').innerHTML = `
+    <button class="btn btn-ghost" onclick="openTest(${testWeek})">🔄 Retry</button>
+    <button class="btn btn-primary" onclick="closeTest()">Done ✓</button>`;
+}
+
+// ── MAIN SCRIPT ─────────────────────────────────────────────
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...(opts.headers||{}) }
+  });
+  if (res.status === 401) { window.location.href = '/'; return null; }
+  return res.json();
+}
+
+async function init() {
+  const sessRes = await apiFetch('/api/chat/session', { method: 'POST', body: JSON.stringify({ skill_name: skillName }) });
+  if (sessRes) sessionId = sessRes.session_id;
+  loadCurriculum();
+}
+
+async function loadCurriculum() {
+  const res = await apiFetch(`/api/curriculum/${encodeURIComponent(skillName)}`);
+  if (!res || !res.curriculum) return;
+  curriculumData = res.curriculum;
+
+  const completed = curriculumData.filter(c => c.completed).length;
+  const pct = curriculumData.length ? Math.round(completed / curriculumData.length * 100) : 0;
+  document.getElementById('prog-pct').textContent = `${pct}%`;
+  document.getElementById('prog-fill').style.width = `${pct}%`;
+
+  const weeks = {};
+  curriculumData.forEach(item => {
+    const w = item.week_number || 1;
+    if (!weeks[w]) weeks[w] = [];
+    weeks[w].push(item);
+  });
+
+  const listEl = document.getElementById('curr-list');
+  if (curriculumData.length === 0) {
+    listEl.innerHTML = `<div style="color:var(--muted);font-size:.82rem;padding:1rem;text-align:center;">AI is generating your curriculum...<br>Start chatting to begin! 🤖</div>`;
+    return;
+  }
+
+  listEl.innerHTML = Object.keys(weeks).map(w => `
+    <div class="week-group">
+      <div class="week-label">
+        <span>Week ${w}</span>
+      </div>
+      <button class="week-test-btn" onclick="openTest(${w})">🧪 Take Week ${w} Test</button>
+      ${weeks[w].map(item => `
+        <div class="curr-item ${item.completed ? 'completed' : ''}" id="curr-${item.id}" onclick="startTopic(${item.id},'${item.title.replace(/'/g,"\\'")}')">
+          <div class="curr-top">
+            <div class="curr-check">${item.completed ? '✓' : ''}</div>
+            <div class="curr-info">
+              <div class="curr-title">${item.title}</div>
+              <div class="curr-meta">
+                <span class="curr-type type-${item.type}">${item.type}</span>
+                <span class="curr-mins">⏱ ${item.duration_mins}m</span>
+              </div>
+            </div>
+                      </div>
+        </div>`
+      ).join('')}
+    </div>`
+  ).join('');
+}
+
+function startTopic(id, title) {
+  document.querySelectorAll('.curr-item').forEach(el => el.classList.remove('active-item'));
+  document.getElementById(`curr-${id}`)?.classList.add('active-item');
+  sendStarter(`Let's study: "${title}". Please explain this topic clearly with examples.`);
+  setTimeout(() => completeCurriculum(id), 3000);
+}
+
+async function completeCurriculum(id) {
+  if (completedIds.has(id)) return;
+  completedIds.add(id);
+  await apiFetch('/api/curriculum/complete', { method: 'POST', body: JSON.stringify({ curriculum_id: id }) });
+  const el = document.getElementById(`curr-${id}`);
+  if (el) { el.classList.add('completed'); el.querySelector('.curr-check').textContent = '✓'; }
+  loadCurriculum();
+}
+
+// ── CHAT ────────────────────────────────────────────────────
+function addMessage(role, text) {
+  const welcomeEl = document.getElementById('welcome-msg');
+  if (welcomeEl) welcomeEl.remove();
+
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const avatarText = role === 'user' ? NAME[0].toUpperCase() : icon;
+  div.innerHTML = `
+    <div class="msg-avatar">${avatarText}</div>
+    <div>
+      <div class="msg-bubble">${formatMessage(text)}</div>
+      <div class="msg-time">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function formatMessage(text) {
+  text = text.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) =>
+    `<pre><code>${escHtml(code.trim())}</code></pre>`);
+  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/\n/g, '<br>');
+  if (text.toLowerCase().includes('youtube') || text.toLowerCase().includes('video tutorial')) {
+    text += `<br><br><button onclick="openYTFromChat()" style="background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.4);color:#f87171;border-radius:6px;padding:.4rem .8rem;cursor:pointer;font-size:.8rem;margin-top:.3rem;">▶️ Find YouTube Tutorials</button>`;
+  }
+  return text;
+}
+
+function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.id = 'typing-msg';
+  div.innerHTML = `<div class="msg-avatar">🤖</div><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() { document.getElementById('typing-msg')?.remove(); }
+
+async function sendMessage() {
+  const input = document.getElementById('msg-input');
+  const text = input.value.trim();
+  if (!text || !sessionId) return;
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  addMessage('user', text);
+  showTyping();
+
+  const res = await apiFetch('/api/chat', {
+    method: 'POST',
+    body: JSON.stringify({
+      session_id: sessionId,
+      message: text,
+      skill_name: skillName,
+      level: document.getElementById('level-select').value
+    })
+  });
+  removeTyping();
+  document.getElementById('send-btn').disabled = false;
+
+  if (res && res.reply) {
+    addMessage('assistant', res.reply);
+  } else {
+    addMessage('assistant', '⚠️ Connection issue. Please check the server and try again.');
+  }
+}
+
+function sendStarter(text) {
+  document.getElementById('msg-input').value = text;
+  sendMessage();
+}
+
+function useHint(text) { document.getElementById('msg-input').value = text; document.getElementById('msg-input').focus(); }
+
+document.getElementById('msg-input').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+document.getElementById('msg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function clearChat() {
+  document.getElementById('messages').innerHTML = `
+    <div class="welcome-msg" id="welcome-msg">
+      <h2>👋 New Chat for <span style="color:var(--cyan)">${skillName}</span></h2>
+      <p>Ask me anything! I'm here to help you learn.</p>
+      <div class="starter-chips">${starters.map(s=>`<div class="starter-chip" onclick="sendStarter('${s.replace(/'/g,"\\'")}')">${s}</div>`).join('')}</div>
+    </div>`;
+  init();
+}
+
+// ── YOUTUBE ─────────────────────────────────────────────────
+let ytOpen = false;
+function toggleYT() { ytOpen = !ytOpen; document.getElementById('yt-panel').classList.toggle('open', ytOpen); }
+function openYTFromChat() { if (!ytOpen) toggleYT(); searchYouTube(); }
+
+async function searchYouTube() {
+  const query = document.getElementById('yt-input').value.trim() || skillName;
+  const res = await apiFetch(`/api/youtube?q=${encodeURIComponent(query)}&skill=${encodeURIComponent(skillName)}`);
+  const el = document.getElementById('yt-results');
+
+  if (!res) { el.innerHTML = `<div class="no-results">Error fetching results.</div>`; return; }
+
+  if (res.videos && res.videos.length > 0) {
+    el.innerHTML = res.videos.map(v => `
+      <a class="yt-card" href="${v.url}" target="_blank" rel="noopener">
+        <img class="yt-thumb" src="${v.thumbnail}" alt="${v.title}" onerror="this.style.display='none'">
+        <div class="yt-info">
+          <div class="yt-title">${v.title}</div>
+          <div class="yt-channel">📺 ${v.channel}</div>
+        </div>
+      </a>`).join('');
+  } else {
+    const searchUrl = res.search_url || `https://www.youtube.com/results?search_query=${encodeURIComponent(skillName + ' tutorial')}`;
+    el.innerHTML = `
+      <div class="no-results">
+        <p style="margin-bottom:1rem">🎬 Free tutorials await!</p>
+        <a href="${searchUrl}" target="_blank" rel="noopener" style="display:block;padding:.8rem 1rem;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:8px;color:#f87171;text-decoration:none;font-weight:700;text-align:center;">
+          ▶️ Search "${skillName} tutorial" on YouTube →
+        </a>
+      </div>`;
+  }
+
+  if (!ytOpen) toggleYT();
+}
+
+init();
+</script>
+</body>
+</html>
